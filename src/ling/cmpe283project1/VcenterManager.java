@@ -10,41 +10,46 @@ import com.vmware.vim25.mo.Datacenter;
 import com.vmware.vim25.mo.Folder;
 import com.vmware.vim25.mo.HostSystem;
 import com.vmware.vim25.mo.InventoryNavigator;
+import com.vmware.vim25.mo.ManagedEntity;
 import com.vmware.vim25.mo.ServiceInstance;
 import com.vmware.vim25.mo.Task;
 import com.vmware.vim25.mo.VirtualMachine;
 
 public class VcenterManager {
-	static private Datacenter theVcenter;
-	static private ArrayList<HostSystem> usedVhosts;
-	static private ArrayList<HostConnectSpec> backupVhostConnects;
+	static public Datacenter theVcenter;
+	static public ArrayList<HostSystem> usedVhosts;
+	static public ArrayList<HostConnectSpec> backupVhostConnects;
 	
-	public static void setVcenter() throws Exception{   //need to test
+	public static void setVcenter() throws Exception{   
 		//set the vCenter with given url, user name and password.
-		URL url = new URL("https://130.65.132.151/sdk");
-		ServiceInstance si = new ServiceInstance(url, "root", "12!@qwQW", true);
+		URL url = new URL("https://130.65.132.150/sdk");
+		ServiceInstance si = new ServiceInstance(url, "administrator", "12!@qwQW", true);			
 		Folder rootFolder = si.getRootFolder();
-		Datacenter[] dcs = (Datacenter[]) new InventoryNavigator(rootFolder).searchManagedEntities("Datacenter");
-		VcenterManager.theVcenter=dcs[0];
+		ManagedEntity[] mes = new InventoryNavigator(rootFolder).searchManagedEntities("Datacenter");
+		VcenterManager.theVcenter =(Datacenter) mes[0];
+		ArrayList<HostSystem> Vhosts =new ArrayList<HostSystem>();
+		usedVhosts=Vhosts;
 	}
 	
 
 	
-	public static void findandUpdateVhostsInVcenter() throws Exception{  //need to test
+	public static ArrayList<HostSystem> findandUpdateVhostsInVcenter() throws Exception{  
 	//find all vHost in this vCenter and then update usedVhosts list
-		Folder vHostFolder = VcenterManager.theVcenter.getHostFolder();
-		HostSystem[] vhosts =
-				(HostSystem[]) new InventoryNavigator(vHostFolder).searchManagedEntities("HostSystem");
-		VcenterManager.usedVhosts.clear();
-		for(HostSystem vhost : vhosts){			
-			VcenterManager.usedVhosts.add(vhost);
+		System.out.println("finding and updating vHosts in this vCenter....");
+		Folder vhostFolder = VcenterManager.theVcenter.getHostFolder(); 
+		ManagedEntity[] mes =  
+				new InventoryNavigator(vhostFolder).searchManagedEntities("HostSystem");
+		//if(!VcenterManager.usedVhosts.isEmpty()) VcenterManager.usedVhosts.clear();
+		for(ManagedEntity me : mes){			
+			VcenterManager.usedVhosts.add( (HostSystem) me);
 		}
-		
+		return VcenterManager.usedVhosts;
 	}
 	
 	public static HostSystem findFirstAvailableVhost() throws Exception{ //need to test
-	//find first available vHost from usedVhosts list
+	//find first available vHost from usedVhosts list		
 		VcenterManager.findandUpdateVhostsInVcenter();  //update current usedVhost list
+		System.out.println("finding first available vHosts in this vCenter....");
 		for(HostSystem vhost : VcenterManager.usedVhosts){  //search usedVhost list
 			if(PingManager.pingVhost(vhost)) return vhost;
 		}		
@@ -57,6 +62,12 @@ public class VcenterManager {
 
 	public static void setBackupVhostConnects(){
 		//set backupVhostConnects list with given vHost ip, user name and password
+		HostConnectSpec newHost = new HostConnectSpec();
+		newHost.setHostName("130.65.132.155");
+		newHost.setUserName("root");
+		newHost.setPassword("12!@qwQW");
+		newHost.setSslThumbprint("130.65.132.155");
+		VcenterManager.backupVhostConnects.add( newHost);
 		
 	}
 	
@@ -68,6 +79,7 @@ public class VcenterManager {
 			return;
 		}	
 		HostConnectSpec backupvhost = backupVhostConnects.get(0); //get the first vhost in back up list
+		System.out.println ("trying to add backup vHost to the vCenter now....");
 		Task addHostTask =
 				VcenterManager.theVcenter.getHostFolder().addStandaloneHost_Task(backupvhost, new ComputeResourceConfigSpec(), true);
 		if (addHostTask.waitForTask() == Task.SUCCESS) {
@@ -79,7 +91,7 @@ public class VcenterManager {
 	
 	public static void removeVhostFromVcenter(HostSystem vhost) throws Exception{ //need to test
 		//remove selected vHost from the vCenter
-		//VcenterManager.theVcenter.
+		System.out.println("try to remove the vHost from the vCenter....");
 		Task disconnectTask = vhost.disconnectHost();
 		System.out.println("disconnecting vHost " + vhost.getName());
 
@@ -101,11 +113,16 @@ public class VcenterManager {
 
 
 
-	public static VirtualMachine[] findAllVmsInVcenter() throws Exception{  //need to test
+	public static VirtualMachine[] findAllVmsInVcenter() throws Exception{  
 	//find all virtual machines in this vCenter
-		Folder vmFolder = VcenterManager.theVcenter.getVmFolder();
-		VirtualMachine[] vms =
-				(VirtualMachine[]) new InventoryNavigator(vmFolder).searchManagedEntities("VirtualMachine");
+
+		Folder vmFolder =VcenterManager.theVcenter.getVmFolder();
+		ManagedEntity[] mes = new InventoryNavigator(vmFolder).searchManagedEntities("VirtualMachine");
+		
+		VirtualMachine[] vms = new VirtualMachine[mes.length] ;
+		for(int i=0; i<mes.length; i++){
+			vms[i]=(VirtualMachine) mes[i];
+		}
 		return vms;
 	}
 

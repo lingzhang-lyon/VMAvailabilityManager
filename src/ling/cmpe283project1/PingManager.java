@@ -31,6 +31,10 @@ public class PingManager {
 		return pingByIP(ip);
 	}
 	
+	public static String getVhostIP(HostSystem vhost) throws Exception{
+		String ip=vhost.getConfig().getNetwork().getVnic()[0].getSpec().getIp().getIpAddress();
+		return ip;
+	}
 
 	
 }

@@ -13,6 +13,7 @@ public class VhostManager {
 	
      public static boolean rebootVhost(HostSystem vhost) throws Exception{ //need to test
     	 //restart selected vHost
+    	System.out.println("try to reboot" + vhost.getName() + " now....");
     	Task task= vhost.rebootHost(true);
     	if (task.waitForTask() == Task.SUCCESS) {
   		  System.out.println(vhost.getName() + "is rebooted");
@@ -22,6 +23,16 @@ public class VhostManager {
   			System.out.println(vhost.getName() + " failed to reboot"); 
   			return false;
   		}
+     }
+     
+     public static HostSystem findVhostByName(String vhostname) throws Exception{
+		 Folder vHostFolder = VcenterManager.theVcenter.getHostFolder();
+		 HostSystem vhost =
+					(HostSystem) new InventoryNavigator(vHostFolder).searchManagedEntity("HostSystem", vhostname);
+		 if (vhost == null)  throw new Exception("host is null");
+	
+		 return vhost;
+    	 
      }
      
      public static void createNewVhost(){
