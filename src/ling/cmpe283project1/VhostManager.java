@@ -10,12 +10,18 @@ import com.vmware.vim25.mo.Task;
 import com.vmware.vim25.mo.VirtualMachine;
 
 public class VhostManager {
-     public static void rebootVhost(HostSystem vhost) throws Exception{ //need to test
+	
+     public static boolean rebootVhost(HostSystem vhost) throws Exception{ //need to test
     	 //restart selected vHost
     	Task task= vhost.rebootHost(true);
-    	if (task.waitForTask() == Task.SUCCESS) 
+    	if (task.waitForTask() == Task.SUCCESS) {
   		  System.out.println(vhost.getName() + "is rebooted");
-  		else System.out.println(vhost.getName() + " failed to reboot"); 
+  		  return true;
+    	}
+  		else {
+  			System.out.println(vhost.getName() + " failed to reboot"); 
+  			return false;
+  		}
      }
      
      public static void createNewVhost(){
