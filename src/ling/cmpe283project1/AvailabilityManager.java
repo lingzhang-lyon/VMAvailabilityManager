@@ -31,11 +31,12 @@ package ling.cmpe283project1;
 
 import java.net.URL;
 
-import org.tempuri.Service;
-import org.tempuri.ServiceSoap;
+import com.vmware.vim25.mo.Datacenter;
+import com.vmware.vim25.mo.Folder;
+import com.vmware.vim25.mo.InventoryNavigator;
+import com.vmware.vim25.mo.ServiceInstance;
 
-import com.vmware.vim25.*;
-import com.vmware.vim25.mo.*;
+
 
 public class AvailabilityManager 
 {   
@@ -44,6 +45,8 @@ public class AvailabilityManager
 	
 	public static void main(String[] args) throws Exception {
 		
+		
+		VcenterManager.setVcenter(); //set the predefined vCenter
 		
 		
 	}

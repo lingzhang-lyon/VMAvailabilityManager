@@ -32,6 +32,8 @@ public class HelloVMtest {
         //testStatics(mes); //test success
         //testSnapshot(mes); //test success
 		testSetPowerOn(mes); //test success
+		
+		testGetVhostofVM(mes); //need to test
         testRevertToSnapshot(mes);  //have problem
         ManagedEntity[] mesnew = new InventoryNavigator(rootFolder).searchManagedEntities("VirtualMachine");
 		testSetPowerOn(mesnew); //have problem
@@ -59,7 +61,7 @@ public class HelloVMtest {
 	
 	public static void testStatics(ManagedEntity[] mes) throws Exception{
 		for(int i=0; i<mes.length; i++){
-			VirtualMachine vm = (VirtualMachine) mes[i];
+			VirtualMachine vm = (VirtualMachine) mes[i]; 
 			System.out.println("");
 			VmManager.printStatics(vm);
 		}
@@ -88,6 +90,11 @@ public class HelloVMtest {
 		 if (vmps==VirtualMachinePowerState.poweredOff ) {
 			 VmManager.setPowerOn(vm);
 		 }
+     }
+     
+     public static void testGetVhostofVM(ManagedEntity[] mes) throws Exception { //need to test
+    	 VirtualMachine vm = (VirtualMachine) mes[0];
+    	 System.out.println("\n VM "+ vm.getName() +" belong to "+vm.getParent().getName());
      }
 	
 

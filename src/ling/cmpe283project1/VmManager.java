@@ -27,7 +27,7 @@ public class VmManager {
 	}	
 	
 	public static void printStatics(VirtualMachine vm){
-		System.out.println(vm.getName() + " statics --------------- ");
+		System.out.println(vm.getName() + " statics --------------- ");		
 		System.out.println("Name: " + vm.getName());
 		System.out.println("Guest OS: "
 		+ vm.getSummary().getConfig().guestFullName);
