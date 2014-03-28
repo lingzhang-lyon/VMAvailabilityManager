@@ -1,6 +1,8 @@
 package ling.cmpe283project1;
 
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import com.vmware.vim25.HostVMotionCompatibility;
 import com.vmware.vim25.VirtualMachineMovePriority;
@@ -9,10 +11,23 @@ import com.vmware.vim25.mo.ComputeResource;
 import com.vmware.vim25.mo.Folder;
 import com.vmware.vim25.mo.HostSystem;
 import com.vmware.vim25.mo.InventoryNavigator;
+import com.vmware.vim25.mo.ManagedEntity;
+import com.vmware.vim25.mo.ServiceInstance;
 import com.vmware.vim25.mo.Task;
 import com.vmware.vim25.mo.VirtualMachine;
 
 public class VhostManager {
+	
+	public static HashMap<String, String> vhostNameIn14Map;
+	
+	public static void setvhostNameIn14Map() throws Exception{
+		HashMap<String, String> Map = new HashMap<String, String>();
+	    Map.put("130.65.132.151", "t03-vHost01-cum1-lab1 _.132.151");
+	    Map.put("130.65.132.155", "t03-vHost01-cum1-proj1_132.155");
+	    Map.put("130.65.132.159", "t03-vHost01-cum1-lab2_132.159");
+	    VhostManager.vhostNameIn14Map=Map;
+	    
+	}
 	
      public static HostSystem findVhostByName(String vhostname) throws Exception{
 		 Folder vHostFolder = VcenterManager.theVcenter.getHostFolder();
@@ -49,23 +64,68 @@ public class VhostManager {
      }
      
 
-        
+     public static VirtualMachine findVhostAsVMInAdminServer(HostSystem vhost) throws Exception {
+    	//initial the map to match the vhost name in admin server
+    	 VhostManager.setvhostNameIn14Map();
+    	 
+    	 // get the vhost name in admin server
+    	String vhostname=vhost.getName(); 
+    	String vhostnameIn14 = VhostManager.vhostNameIn14Map.get(vhostname);
+    	
+ 		URL url = new URL("https://130.65.132.14/sdk");
+ 		ServiceInstance si = new ServiceInstance(url, "administrator", "12!@qwQW", true);
+ 		Folder rootFolder = si.getRootFolder();
+ 		String name = rootFolder.getName();
+ 		System.out.println("root:" + name);
+ 		VirtualMachine vhostAsVm = (VirtualMachine) new InventoryNavigator(rootFolder).searchManagedEntity("VirtualMachine",vhostnameIn14);
+ 		
+ 		if(vhostAsVm==null) System.out.println(vhostname + " is null"); 
+ 		else System.out.println(vhostname + " founded in admin server"); 
+		//si.getServerConnection().logout();
+		
+ 		return vhostAsVm;
+     }
      
-     public static void createVhostSnapshot(HostSystem vhost){ 
+     public static void createVhostSnapshot(HostSystem vhost) throws Exception{ 
     	 //create a snapshot for selected vHost in the admin server (130.65.132.14) ??
-// 		String snapshotname = vhost.getName() + "_SnapShot";
-// 		String description = "new snapshot of " + vhost.getName();
-// 		
-// 		Task task = vhost.createSnapshot_Task(snapshotname, description, false, false);
-// 		if (task.waitForTask() == Task.SUCCESS)
-// 		System.out.println(snapshotname + " was created.");
-// 		else System.out.println(snapshotname + " create failed.");
+    	 //find vhost as Vm in admin server
+    	 VirtualMachine vhostAsVm=findVhostAsVMInAdminServer(vhost);
+ 		
+ 		//start create snapshot
+ 		
+ 		String snapshotname = vhostAsVm.getName() + "_SnapShot";
+ 		
+ 		String description = "new snapshot of " + vhostAsVm.getName();
+ 		
+ 		Task task = vhostAsVm.createSnapshot_Task(snapshotname, description, false, false);
+ 		
+ 		if (task.waitForTask() == Task.SUCCESS)
+ 		System.out.println("vhost" + snapshotname + " was created.");
+ 		else System.out.println("vhost" + vhost.getName() + " snapshot create failed.");
+ 		
+ 		//si.getServerConnection().logout();
+ 		
  		
      }
      
      
-     public static void recoverVhostFromSnapshot(HostSystem oldvhost, HostSystem newvhost){
+     public static void recoverVhostFromSnapshot(HostSystem vhost) throws Exception{
     	 //recover vHost by snapshot???
+    	 
+    	//find vhost as Vm in admin server 
+    	VirtualMachine vhostAsVm=findVhostAsVMInAdminServer(vhost);
+ 	
+ 		// revert vhost to snapshot
+ 		Task revertTask = vhostAsVm.revertToCurrentSnapshot_Task(null);
+		  System.out.println("\ntrying to revert " + vhostAsVm.getName() + " to snapshot...." );
+		  if (revertTask.waitForTask() == Task.SUCCESS) 
+				System.out.println("vHost "+vhostAsVm.getName()+" has been reverted to recent snapshot.");			
+		  else 
+				System.out.println("fail to recover vHost "+vhostAsVm.getName());
+		  VmManager.setPowerOn(vhostAsVm);
+ 				 
+		 // si.getServerConnection().logout();
+ 		
      
      }
 
