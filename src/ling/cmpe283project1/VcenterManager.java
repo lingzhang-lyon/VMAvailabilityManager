@@ -20,17 +20,32 @@ public class VcenterManager {
 	static public ArrayList<HostSystem> usedVhosts;
 	static public ArrayList<HostConnectSpec> backupVhostConnects;
 	
-	public static void setVcenter() throws Exception{   
-		//set the vCenter with given url, user name and password.
+	public static void setVcenter() throws Exception{   //constructor
+		//initial the vCenter with given url, user name and password.
 		URL url = new URL("https://130.65.132.150/sdk");
 		ServiceInstance si = new ServiceInstance(url, "administrator", "12!@qwQW", true);			
 		Folder rootFolder = si.getRootFolder();
 		ManagedEntity[] mes = new InventoryNavigator(rootFolder).searchManagedEntities("Datacenter");
 		VcenterManager.theVcenter =(Datacenter) mes[0];
-		ArrayList<HostSystem> Vhosts =new ArrayList<HostSystem>();
+		//initial usedVhosts
+		ArrayList<HostSystem> Vhosts =new ArrayList<HostSystem>(); 
 		usedVhosts=Vhosts;
+		//initial backupVhostConnects
+		ArrayList<HostConnectSpec> VhostConnects =new ArrayList<HostConnectSpec>(); 
+		backupVhostConnects=VhostConnects;
+		
 	}
 	
+	public static void setBackupVhostConnects(){ 
+		//set backupVhostConnects list with given vHost ip, user name and password
+		HostConnectSpec newHost = new HostConnectSpec();
+		newHost.setHostName("130.65.132.155");
+		newHost.setUserName("root");
+		newHost.setPassword("12!@qwQW");
+		newHost.setSslThumbprint("EE:2B:25:8F:48:6E:38:5C:B3:DD:B0:87:FD:66:AA:1B:25:DF:B9:7C");
+		VcenterManager.backupVhostConnects.add( newHost);
+		
+	}
 
 	
 	public static ArrayList<HostSystem> findandUpdateVhostsInVcenter() throws Exception{  
@@ -39,7 +54,7 @@ public class VcenterManager {
 		Folder vhostFolder = VcenterManager.theVcenter.getHostFolder(); 
 		ManagedEntity[] mes =  
 				new InventoryNavigator(vhostFolder).searchManagedEntities("HostSystem");
-		//if(!VcenterManager.usedVhosts.isEmpty()) VcenterManager.usedVhosts.clear();
+		if(!VcenterManager.usedVhosts.isEmpty()) VcenterManager.usedVhosts.clear();
 		for(ManagedEntity me : mes){			
 			VcenterManager.usedVhosts.add( (HostSystem) me);
 		}
@@ -60,25 +75,17 @@ public class VcenterManager {
 
 
 
-	public static void setBackupVhostConnects(){
-		//set backupVhostConnects list with given vHost ip, user name and password
-		HostConnectSpec newHost = new HostConnectSpec();
-		newHost.setHostName("130.65.132.155");
-		newHost.setUserName("root");
-		newHost.setPassword("12!@qwQW");
-		newHost.setSslThumbprint("130.65.132.155");
-		VcenterManager.backupVhostConnects.add( newHost);
-		
-	}
+	
 	
 	public static void addBackupVhostToVcenter(ArrayList<HostConnectSpec> backupVhostConnects) //need to test
 			throws Exception{ 
 		//add vHost from backup vHostConnects to the vCenter
-		if(!backupVhostConnects.isEmpty()){ 
+		if(backupVhostConnects.isEmpty()){ //if backup list is empty
 			System.out.println ("no back up vHost left!!! You need to add more vHost to back up");
 			return;
-		}	
-		HostConnectSpec backupvhost = backupVhostConnects.get(0); //get the first vhost in back up list
+		}
+		//if backup list is not empty
+		HostConnectSpec backupvhost = backupVhostConnects.get(0); //get the first vhostconnect in back up list
 		System.out.println ("trying to add backup vHost to the vCenter now....");
 		Task addHostTask =
 				VcenterManager.theVcenter.getHostFolder().addStandaloneHost_Task(backupvhost, new ComputeResourceConfigSpec(), true);
@@ -91,24 +98,26 @@ public class VcenterManager {
 	
 	public static void removeVhostFromVcenter(HostSystem vhost) throws Exception{ //need to test
 		//remove selected vHost from the vCenter
-		System.out.println("try to remove the vHost from the vCenter....");
+		System.out.println("trying to remove the vHost from the vCenter....");
 		Task disconnectTask = vhost.disconnectHost();
 		System.out.println("disconnecting vHost " + vhost.getName());
-
+        String vhostName=vhost.getName();
 		if (disconnectTask.waitForTask() == Task.SUCCESS) {
 
 			System.out.println("vHost " +vhost.getName() +  " disconnected.");
 	         
-			//may not need following:
+	
 			ComputeResource cr = (ComputeResource) vhost.getParent();
 			Task destroyTask = cr.destroy_Task();	
 			System.out.println("destroying vHost " +vhost.getName() +  " ........");
+			
 			if (destroyTask.waitForTask() == Task.SUCCESS) 
-				System.out.println("vHost "+vhost.getName()+"has been destroyed.");			
+				System.out.println("vHost "+vhostName+"has been destroyed.");			
 			else 
-				System.out.println("fail to destroy vHost "+vhost.getName());
+				System.out.println("fail to destroy vHost "+vhostName);
 			
 		}
+		else System.out.println("check");
 	}
 
 
@@ -126,6 +135,7 @@ public class VcenterManager {
 		return vms;
 	}
 
+	
 	
 
 

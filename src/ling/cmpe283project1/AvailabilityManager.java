@@ -72,7 +72,7 @@ public class AvailabilityManager
 					else SuccessTimer.put(vm, SuccessTimer.get(vm)+1);
 				    if(SuccessTimer.get(vm)==10){
 				    	VmManager.printStatics(vm);
-				    	VmManager.createSnapshot(vm);
+				    	VmManager.createVmSnapshot(vm);
 				    	SuccessTimer.put(vm, 0);
 				    }
 				}

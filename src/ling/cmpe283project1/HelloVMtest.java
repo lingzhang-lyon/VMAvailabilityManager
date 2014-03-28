@@ -30,29 +30,34 @@ public class HelloVMtest {
 
 		
         //testPingVM(mes);  //test success
-        //testStatics(mes); //test success
-        //testSnapshot(mes); //test success
+        //testStatics(mes); //test success      
 		//testSetPowerOn(mes); //test success
 		
-		//testGetVhostofVM(mes); //need to test //failed
+		
 		//testfindAllVMsinVcenter(); //test success
 		//testfindAllVhostInVcenter();//test success
 		//testFindFirstAvailableHost(); //test success
-	
-		//testRebootVhost(mes); //failed!!!!
-		//testRemoveVhostFromVcenter();  //failed!!!!
-		testAddBackupVhostToVcenter();
+		//testfindVhostByName();//test success
+		//testAddBackupVhostToVcenter(); //test success
+		//testRemoveVhostFromVcenter();  //failed!!!!	
 		
-//        testRevertToSnapshot(mes);  //have problem
-//        ManagedEntity[] mesnew = new InventoryNavigator(rootFolder).searchManagedEntities("VirtualMachine");
-//		testSetPowerOn(mesnew); //have problem
+		//testRebootVhost(mes); //failed!!!!
+		//testGetVhostofVM(mes); //no need to test //failed !!!	
+		
+		//testSnapshot(mes); //test success
+        //testRevertToSnapshot(mes);  //test success
+		
+		testMigrateToNewVhost();
+		
         
 		
         if (PingManager.pingByIP("130.65.132.159")) 
         	System.out.println("\nping host159 successful");
         if (PingManager.pingByIP("130.65.132.151")) 
         	System.out.println("\nping host151 successful");
-
+        if (PingManager.pingByIP("130.65.132.155")) 
+        	System.out.println("\nping host155 successful");
+        
 		si.getServerConnection().logout();
 		
 	}
@@ -78,23 +83,6 @@ public class HelloVMtest {
 		}
 	}
 	
-     public static void testSnapshot(ManagedEntity[] mes) throws Exception{		
-		for(int i=0; i<mes.length; i++){
-				VirtualMachine vm = (VirtualMachine) mes[i]; 
-				System.out.println("\n" + vm.getName() + ": hello, my status is " + vm.getGuestHeartbeatStatus());
-				
-				VmManager.createSnapshot(vm);				
-		}
-				
-	 }
-     
-     public static void testRevertToSnapshot(ManagedEntity[] mes) throws Exception {
-    	  VirtualMachine vm = (VirtualMachine) mes[0];
-    	  System.out.println("\ntry to revert to snapshot" + vm.getName() );
-    	  vm.revertToCurrentSnapshot_Task(null);
-    	  VmManager.setPowerOn(vm);
-     }
-     
      public static void testSetPowerOn(ManagedEntity[] mes) throws Exception{	 
     	 VirtualMachine vm = (VirtualMachine) mes[0];
     	 VirtualMachinePowerState vmps = vm.getRuntime().getPowerState();
@@ -103,19 +91,7 @@ public class HelloVMtest {
 		 }
      }
      
-     public static HostSystem testGetVhostofVM(ManagedEntity[] mes) throws Exception { //need to test
-    	 VirtualMachine vm = (VirtualMachine) mes[0];
-
-    	 String vhostname=vm.getGuest().hostName;
-    	 VcenterManager.setVcenter();
-    	 HostSystem parenthost = VhostManager.findVhostByName(vhostname);
-    	 String hostip=parenthost.getConfig().getNetwork().getVnic()[0].getSpec().getIp().getIpAddress();
-    	 System.out.println("\n VM "+ vm.getName() +" belong to "+ vm.getGuest().hostName);
-    	 System.out.println("\n VM "+ vm.getName() +" belong to "+ hostip);
-    	 return parenthost;
-     }
-	
-    public static void testfindAllVMsinVcenter() throws Exception{
+     public static void testfindAllVMsinVcenter() throws Exception{
     	VcenterManager.setVcenter();
     	System.out.println("vCenter is : " + VcenterManager.theVcenter.getName());   	
     	VirtualMachine[] vms= VcenterManager.findAllVmsInVcenter();
@@ -142,7 +118,28 @@ public class HelloVMtest {
     	}
     }
     
-    public static void testRebootVhost() throws Exception {
+    public static void testfindVhostByName() throws Exception {
+    	VcenterManager.setVcenter();
+    	System.out.println("vCenter is : " + VcenterManager.theVcenter.getName());
+    	HostSystem testvhost = VhostManager.findVhostByName("130.65.132.155");
+    	System.out.println("vHost " + testvhost.getName() + "has been found");
+    	
+    }
+    
+    public static HostSystem testGetVhostofVM(ManagedEntity[] mes) throws Exception { //need to test!!!!!!
+		 VirtualMachine vm = (VirtualMachine) mes[0];
+		 System.out.println("\n VM "+ vm.getName());
+		 
+		 String vhostname=vm.getGuest().hostName;
+		 VcenterManager.setVcenter();
+		 HostSystem parenthost = VhostManager.findVhostByName(vhostname);
+		 String hostip=parenthost.getConfig().getNetwork().getVnic()[0].getSpec().getIp().getIpAddress();
+		 System.out.println("\n VM "+ vm.getName() +" belong to "+ vm.getGuest().hostName);
+		 System.out.println("\n VM "+ vm.getName() +" belong to "+ hostip);
+		 return parenthost;
+	 }
+
+	public static void testRebootVhost() throws Exception {
     	VcenterManager.setVcenter();
     	System.out.println("vCenter is : " + VcenterManager.theVcenter.getName());
     	ArrayList<HostSystem> testvHosts=VcenterManager.findandUpdateVhostsInVcenter();
@@ -153,15 +150,24 @@ public class HelloVMtest {
     	}
     }
     
-    public static void testRemoveVhostFromVcenter() throws Exception {
+    public static void testRemoveVhostFromVcenter() throws Exception { //failed!!!
     	VcenterManager.setVcenter();
     	System.out.println("vCenter is : " + VcenterManager.theVcenter.getName());
-    	ArrayList<HostSystem> testvHosts=VcenterManager.findandUpdateVhostsInVcenter(); //wrong, you will just get live vhost!
-    	for(HostSystem vhost : testvHosts){
-    		if (!PingManager.pingVhost(vhost)) VcenterManager.removeVhostFromVcenter(vhost);
-    		else
-    			System.out.println(vhost.getName() + " is alive, no need to remove.");  		
+    	//before remove
+    	ArrayList<HostSystem> testvhosts=VcenterManager.findandUpdateVhostsInVcenter();
+    	for(HostSystem vhost : testvhosts){   		
+			System.out.println(vhost.getName() + " is alive, hello.");  		
     	}
+    	//remove
+    	HostSystem testvhost= VhostManager.findVhostByName("130.65.132.155");
+    	VcenterManager.removeVhostFromVcenter(testvhost);
+    	//after remove
+    	ArrayList<HostSystem> aftertestvhosts=VcenterManager.findandUpdateVhostsInVcenter();
+    	for(HostSystem vhost : aftertestvhosts){   		
+			System.out.println(vhost.getName() + " is alive, hello.");  		
+    	}
+    	
+    		
     }
     
     public static void testAddBackupVhostToVcenter() throws Exception{
@@ -185,5 +191,26 @@ public class HelloVMtest {
     	
     
     }
+
+	public static void testCreateSnapshot(ManagedEntity[] mes) throws Exception{		
+		for(int i=0; i<mes.length; i++){
+				VirtualMachine vm = (VirtualMachine) mes[i]; 
+				System.out.println("\n" + vm.getName() + ": hello, my status is " + vm.getGuestHeartbeatStatus());				
+				VmManager.createVmSnapshot(vm);				
+		}
+				
+	 }
+
+	public static void testRevertToSnapshot(ManagedEntity[] mes) throws Exception {
+		  VirtualMachine vm = (VirtualMachine) mes[0];		  
+		  VmManager.revertToSnapshotAndPoweron(vm);
+	 }
+	
+	public static void testMigrateToNewVhost() throws Exception {
+		VcenterManager.setVcenter();
+		HostSystem oldvhost=VhostManager.findVhostByName("130.65.132.159");
+		HostSystem newvhost=VhostManager.findVhostByName("130.65.132.151");		
+		VhostManager.migrateVmsToNewVhost(oldvhost,newvhost);
+	}
 
 }

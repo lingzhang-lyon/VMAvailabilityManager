@@ -7,7 +7,7 @@ import com.vmware.vim25.mo.VirtualMachineSnapshot;
 
 public class VmManager {
 
-	public static void createSnapshot(VirtualMachine vm) throws Exception {
+	public static void createVmSnapshot(VirtualMachine vm) throws Exception {
 		// create a snapshot for selected virtual machine
 		String snapshotname = vm.getName() + "_SnapShot";
 		String description = "new snapshot of " + vm.getName();
@@ -22,8 +22,15 @@ public class VmManager {
 			
 	}
 	
-	public static void revertToSnapshot(VirtualMachine vm, String snapshotname) throws Exception {
+	public static void revertToSnapshotAndPoweron(VirtualMachine vm) throws Exception {
 		//recover the virtual machine from snapshot
+		  Task revertTask = vm.revertToCurrentSnapshot_Task(null);
+		  System.out.println("\ntrying to revert " + vm.getName() + " to snapshot...." );
+		  if (revertTask.waitForTask() == Task.SUCCESS) 
+				System.out.println("VM "+vm.getName()+" has been reverted to recent snapshot.");			
+		  else 
+				System.out.println("fail to recover VM "+vm.getName());
+		  VmManager.setPowerOn(vm);
 	}	
 	
 	public static void printStatics(VirtualMachine vm){
@@ -55,7 +62,7 @@ public class VmManager {
 		Task task = vm.powerOnVM_Task(null);
 		System.out.println("we are powerring on " + vm.getName() + " now, please wait...");
 		if (task.waitForTask() == Task.SUCCESS) 
-		  System.out.println(vm.getName() + "is powered on");
+		  System.out.println(vm.getName() + " is powered on");
 		else System.out.println(vm.getName() + " failed to power on");
 	}
 	
