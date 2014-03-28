@@ -1,6 +1,9 @@
 package ling.cmpe283project1;
 
 import com.vmware.vim25.VirtualMachineQuickStats;
+import com.vmware.vim25.mo.Folder;
+import com.vmware.vim25.mo.HostSystem;
+import com.vmware.vim25.mo.InventoryNavigator;
 import com.vmware.vim25.mo.Task;
 import com.vmware.vim25.mo.VirtualMachine;
 import com.vmware.vim25.mo.VirtualMachineSnapshot;
@@ -66,5 +69,15 @@ public class VmManager {
 		else System.out.println(vm.getName() + " failed to power on");
 	}
 	
+	public static VirtualMachine findVmByNameInVcenter(String vmname) throws Exception{
+		if (VcenterManager.theVcenter== null)  throw new Exception("vCenter is not defined");
+		System.out.println("Searching for VM " +vmname+ " now....");
+		Folder vmFolder = VcenterManager.theVcenter.getVmFolder();
+		VirtualMachine vm =
+					(VirtualMachine) new InventoryNavigator(vmFolder).searchManagedEntity("VirtualMachine", vmname);
+		if (vm== null)  throw new Exception("vm is not found");
+		else System.out.println("VM " +vmname+ " is found");
+		return vm;
+	}
 		
 }

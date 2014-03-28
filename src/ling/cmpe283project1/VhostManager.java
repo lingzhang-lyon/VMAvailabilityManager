@@ -29,11 +29,12 @@ public class VhostManager {
 	    
 	}
 	
-     public static HostSystem findVhostByName(String vhostname) throws Exception{
-		 Folder vHostFolder = VcenterManager.theVcenter.getHostFolder();
+     public static HostSystem findVhostByNameInVcenter(String vhostname) throws Exception{
+    	 if (VcenterManager.theVcenter== null)  throw new Exception("vCenter is not defined");
+    	 Folder vHostFolder = VcenterManager.theVcenter.getHostFolder();
 		 HostSystem vhost =
 					(HostSystem) new InventoryNavigator(vHostFolder).searchManagedEntity("HostSystem", vhostname);
-		 //if (vhost == null)  throw new Exception("host is null");
+		 
 	
 		 return vhost;
     	 
@@ -87,7 +88,7 @@ public class VhostManager {
      }
      
      public static void createVhostSnapshot(HostSystem vhost) throws Exception{ 
-    	 //create a snapshot for selected vHost in the admin server (130.65.132.14) ??
+    	 //create a snapshot for selected vHost in the admin server (130.65.132.14) 
     	 //find vhost as Vm in admin server
     	 VirtualMachine vhostAsVm=findVhostAsVMInAdminServer(vhost);
  		
@@ -110,7 +111,7 @@ public class VhostManager {
      
      
      public static void recoverVhostFromSnapshot(HostSystem vhost) throws Exception{
-    	 //recover vHost by snapshot???
+    	 //recover vHost by snapshot
     	 
     	//find vhost as Vm in admin server 
     	VirtualMachine vhostAsVm=findVhostAsVMInAdminServer(vhost);
@@ -143,8 +144,6 @@ public class VhostManager {
 		}
 	 }
 
-	public static void createNewVhost(){
-		 
-	 }
+
      
 }
