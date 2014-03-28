@@ -6,15 +6,12 @@ import java.util.ArrayList;
 import com.vmware.vim25.*;
 import com.vmware.vim25.mo.*;
 
-public class HelloVMtest {   
-	//private static final String USERNAME = "administrator";
-	//private static final String PASSWORD = "12!@qwQW";
-
+public class TestHelloVM {   
 	
 	public static void main(String[] args) throws Exception {   
 
 		//testfindVmByNameInVcenter(); //test success
-		testSetVmPoweron();	//test success
+		//testSetVmPoweron();	//test success
 		//testfindAllVMsinVcenter(); //test success
         //testPingVM();  //test success
         //testStatics(); //test success 
@@ -30,26 +27,10 @@ public class HelloVMtest {
 		//testRevertVhostToSnapshot(); //test success
 		//testCreateVMSnapshot(); //test success
         //testRevertToSnapshot();  //test success
-
-		
-//		long start = System.currentTimeMillis();
-//		URL url = new URL("https://130.65.132.150/sdk");
-//		ServiceInstance si = new ServiceInstance(url, "administrator", "12!@qwQW", true);
-//		long end = System.currentTimeMillis();
-//		System.out.println("time taken:" + (end-start));
-//		Folder rootFolder = si.getRootFolder();
-//		String name = rootFolder.getName();
-//		System.out.println("root:" + name);
-//		ManagedEntity[] mes = new InventoryNavigator(rootFolder).searchManagedEntities("VirtualMachine");
-//		if(mes==null || mes.length ==0)
-//		{
-//			return;
-//		}
-				
-     
-		
-		//testRebootVhost(mes); //failed!!!! //no need
-		//testGetVhostofVM(mes); //no need to test //failed !!!	
+	
+		//testRebootVhost(); //failed!!!! //no need
+		//testGetVhostofVmFromMap(); //sucess
+		//testUpdateVmListForEachVhost();//success
 		
 
 		      
@@ -73,12 +54,12 @@ public class HelloVMtest {
 		 
      }
      
-     public static void testSetVmPoweron() throws Exception{
+     public static void testSetVmPoweron() throws Exception{ //test restart when power off //success
     	VcenterManager.setVcenter();
      	System.out.println("vCenter is : " + VcenterManager.theVcenter.getName());     	
     	 VirtualMachine vm = VmManager.findVmByNameInVcenter("T03-VM01C-Win-Jiawei");
     	 VirtualMachinePowerState vmps = vm.getRuntime().getPowerState();
-    	 System.out.println(vm.getName()+" is found, and it's status is " + vmps);
+    	 System.out.println(vm.getName()+"'s status is " + vmps);
 		 if (vmps==VirtualMachinePowerState.poweredOff ) {
 			 VmManager.setPowerOn(vm);
 		 }
@@ -129,7 +110,7 @@ public class HelloVMtest {
     public static void testfindAllVhostInVcenter() throws Exception {
     	VcenterManager.setVcenter();
     	System.out.println("vCenter is : " + VcenterManager.theVcenter.getName());
-    	ArrayList<HostSystem> testvHosts=VcenterManager.findandUpdateVhostsInVcenter();
+    	HostSystem[] testvHosts=VcenterManager.findandUpdateVhostsInVcenter();
     	for(HostSystem vhost : testvHosts){   		
     			System.out.println(vhost.getName() + " is alive, hello.");  		
     	}
@@ -143,20 +124,7 @@ public class HelloVMtest {
     	
     }
     
-    public static HostSystem testGetVhostofVM(ManagedEntity[] mes) throws Exception { //need to test!!!!!!
-		 VirtualMachine vm = (VirtualMachine) mes[0];
-		 System.out.println("\n VM "+ vm.getName());
-		 
-		 String vhostname=vm.getGuest().hostName;
-		 VcenterManager.setVcenter();
-		 HostSystem parenthost = VhostManager.findVhostByNameInVcenter(vhostname);
-		 String hostip=parenthost.getConfig().getNetwork().getVnic()[0].getSpec().getIp().getIpAddress();
-		 System.out.println("\n VM "+ vm.getName() +" belong to "+ vm.getGuest().hostName);
-		 System.out.println("\n VM "+ vm.getName() +" belong to "+ hostip);
-		 return parenthost;
-	 }
-
-//	public static void testRebootVhost() throws Exception {
+    //	public static void testRebootVhost() throws Exception {  //not needed
 //    	VcenterManager.setVcenter();
 //    	System.out.println("vCenter is : " + VcenterManager.theVcenter.getName());
 //    	ArrayList<HostSystem> testvHosts=VcenterManager.findandUpdateVhostsInVcenter();
@@ -171,7 +139,7 @@ public class HelloVMtest {
     	VcenterManager.setVcenter();
     	System.out.println("vCenter is : " + VcenterManager.theVcenter.getName());
     	//before remove
-    	ArrayList<HostSystem> testvhosts=VcenterManager.findandUpdateVhostsInVcenter();
+    	HostSystem[] testvhosts=VcenterManager.findandUpdateVhostsInVcenter();
     	for(HostSystem vhost : testvhosts){   		
 			System.out.println(vhost.getName() + " is alive, hello.");  		
     	}
@@ -179,7 +147,7 @@ public class HelloVMtest {
     	HostSystem testvhost= VhostManager.findVhostByNameInVcenter("130.65.132.155");
     	VcenterManager.removeVhostFromVcenter(testvhost);
     	//after remove
-    	ArrayList<HostSystem> aftertestvhosts=VcenterManager.findandUpdateVhostsInVcenter();
+    	HostSystem[] aftertestvhosts=VcenterManager.findandUpdateVhostsInVcenter();
     	for(HostSystem vhost : aftertestvhosts){   		
 			System.out.println(vhost.getName() + " is alive, hello.");  		
     	}
@@ -192,7 +160,7 @@ public class HelloVMtest {
     	VcenterManager.setBackupVhostConnects();
     	//before add
     	System.out.println("vCenter is : " + VcenterManager.theVcenter.getName());
-    	ArrayList<HostSystem> testvHosts=VcenterManager.findandUpdateVhostsInVcenter();
+    	HostSystem[] testvHosts=VcenterManager.findandUpdateVhostsInVcenter();
     	for(HostSystem vhost : testvHosts){   		
     			System.out.println(vhost.getName() + " is alive, hello.");  		
     	}
@@ -201,7 +169,7 @@ public class HelloVMtest {
     	
     	//after add
     	System.out.println("vCenter is : " + VcenterManager.theVcenter.getName());
-    	ArrayList<HostSystem> newvHosts=VcenterManager.findandUpdateVhostsInVcenter();
+    	HostSystem[] newvHosts=VcenterManager.findandUpdateVhostsInVcenter();
     	for(HostSystem vhost : newvHosts){   		
     			System.out.println(vhost.getName() + " is alive, hello.");  		
     	}
@@ -247,6 +215,30 @@ public class HelloVMtest {
 		VhostManager.recoverVhostFromSnapshot(vhost);
 		
 	}
+
+	public static void testUpdateVmListForEachVhost() throws Exception{
+		VcenterManager.setVcenter();
+	 	System.out.println("vCenter is : " + VcenterManager.theVcenter.getName());
+	 	VcenterManager.updateVmNameToVhostNameMap();
+	 	System.out.println(VcenterManager.vmNameToVhostNameMap);
+	 	 
+	}
+	
+	public static void testGetVhostofVmFromMap() throws Exception { //success
+		 VcenterManager.setVcenter();
+	 	 System.out.println("vCenter is : " + VcenterManager.theVcenter.getName()); 
+	 	 VcenterManager.updateVmNameToVhostNameMap();
+		 VirtualMachine vm = VmManager.findVmByNameInVcenter("T03-VM02-Lin-Lan");
+		 String vmname=vm.getName();	 
+		 String vhostname=VmManager.findVhostNameByVmName(vmname);
+		 System.out.println("vHost is "+ vhostname);
+		 HostSystem parenthost = VhostManager.findVhostByNameInVcenter(vhostname);
+		 String hostip=parenthost.getConfig().getNetwork().getVnic()[0].getSpec().getIp().getIpAddress();
+		 System.out.println("VM "+ vm.getName() +" belong to "+ hostip);
+
+	 }
+	
+	
 	
 
 }

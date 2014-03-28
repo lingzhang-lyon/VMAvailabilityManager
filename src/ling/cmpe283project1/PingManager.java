@@ -22,7 +22,7 @@ public class PingManager {
 	
 	public static boolean pingVM (VirtualMachine vm) throws Exception{
 		String ip=vm.getGuest().getIpAddress();
-	    System.out.println(vm.getName() +" ip is "+ ip);
+	    //System.out.println(vm.getName() +" ip is "+ ip);
 		return pingByIP(ip);
 	}
 	

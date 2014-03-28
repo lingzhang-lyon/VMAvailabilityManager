@@ -18,18 +18,10 @@ import com.vmware.vim25.mo.VirtualMachine;
 
 public class VhostManager {
 	
-	public static HashMap<String, String> vhostNameIn14Map;
-	
-	public static void setvhostNameIn14Map() throws Exception{
-		HashMap<String, String> Map = new HashMap<String, String>();
-	    Map.put("130.65.132.151", "t03-vHost01-cum1-lab1 _.132.151");
-	    Map.put("130.65.132.155", "t03-vHost01-cum1-proj1_132.155");
-	    Map.put("130.65.132.159", "t03-vHost01-cum1-lab2_132.159");
-	    VhostManager.vhostNameIn14Map=Map;
-	    
-	}
+
 	
      public static HostSystem findVhostByNameInVcenter(String vhostname) throws Exception{
+    	 //this vhost name is like ip address
     	 if (VcenterManager.theVcenter== null)  throw new Exception("vCenter is not defined");
     	 Folder vHostFolder = VcenterManager.theVcenter.getHostFolder();
 		 HostSystem vhost =
@@ -40,11 +32,11 @@ public class VhostManager {
     	 
      }
      
-     public static VirtualMachine[] findAllVmsInVhost(HostSystem vhost) throws Exception{  //may not need
+     public static VirtualMachine[] findAllVmsInVhost(HostSystem vhost) throws Exception{ //may not necessary 
     		//find all virtual machines in selected vHost
     	    //may need to figure out a way to find all vms when this vHost is down.
-    	       VirtualMachine[] vms = vhost.getVms();  			
-    			return vms;
+    	 VirtualMachine[] vms= vhost.getVms();  
+		 return vms;
     }
      
      public static void migrateVmsToNewVhost(HostSystem oldvhost, HostSystem newvhost) //need to test VirtualMachinePowerState.poweredOff
@@ -67,11 +59,11 @@ public class VhostManager {
 
      public static VirtualMachine findVhostAsVMInAdminServer(HostSystem vhost) throws Exception {
     	//initial the map to match the vhost name in admin server
-    	 VhostManager.setvhostNameIn14Map();
+    	 VcenterManager.setVhostNameIn14Map();
     	 
     	 // get the vhost name in admin server
     	String vhostname=vhost.getName(); 
-    	String vhostnameIn14 = VhostManager.vhostNameIn14Map.get(vhostname);
+    	String vhostnameIn14 = VcenterManager.vhostNameIn14Map.get(vhostname);
     	
  		URL url = new URL("https://130.65.132.14/sdk");
  		ServiceInstance si = new ServiceInstance(url, "administrator", "12!@qwQW", true);
@@ -82,7 +74,7 @@ public class VhostManager {
  		
  		if(vhostAsVm==null) System.out.println(vhostname + " is null"); 
  		else System.out.println(vhostname + " founded in admin server"); 
-		//si.getServerConnection().logout();
+		
 		
  		return vhostAsVm;
      }
@@ -99,9 +91,9 @@ public class VhostManager {
  		String description = "new snapshot of " + vhostAsVm.getName();
  		
  		Task task = vhostAsVm.createSnapshot_Task(snapshotname, description, false, false);
- 		
+ 		System.out.println("createing " + snapshotname + " now...");
  		if (task.waitForTask() == Task.SUCCESS)
- 		System.out.println("vhost" + snapshotname + " was created.");
+ 		System.out.println(snapshotname + " was created.");
  		else System.out.println("vhost" + vhost.getName() + " snapshot create failed.");
  		
  		//si.getServerConnection().logout();

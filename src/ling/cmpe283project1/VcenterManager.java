@@ -2,6 +2,7 @@ package ling.cmpe283project1;
 
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import com.vmware.vim25.ComputeResourceConfigSpec;
 import com.vmware.vim25.HostConnectSpec;
@@ -16,9 +17,11 @@ import com.vmware.vim25.mo.Task;
 import com.vmware.vim25.mo.VirtualMachine;
 
 public class VcenterManager {
-	static public Datacenter theVcenter;
-	static public ArrayList<HostSystem> usedVhosts;
-	static public ArrayList<HostConnectSpec> backupVhostConnects;
+	static public Datacenter theVcenter; //pre-define
+	static public ArrayList<HostConnectSpec> backupVhostConnects;  //pre-define
+	public static HashMap<String, String> vhostNameIn14Map; //pre-define
+	static public ArrayList<HostSystem> usedVhosts; //runtime-update
+	static public HashMap<String, String> vmNameToVhostNameMap; //runtime-update
 	
 	public static void setVcenter() throws Exception{   //constructor
 		//initial the vCenter with given url, user name and password.
@@ -33,11 +36,16 @@ public class VcenterManager {
 		//initial backupVhostConnects
 		ArrayList<HostConnectSpec> VhostConnects =new ArrayList<HostConnectSpec>(); 
 		backupVhostConnects=VhostConnects;
-		
+		//initial vmNameToVhostNameMap
+		HashMap<String, String> map= new HashMap<String,String>();
+		vmNameToVhostNameMap= map;
+		//initial vhostNameIn14Map
+		HashMap<String, String> map2= new HashMap<String,String>();
+		vhostNameIn14Map=map2;
 	}
 	
 	public static void setBackupVhostConnects(){ 
-		//set backupVhostConnects list with given vHost ip, user name and password
+		//pre define backupVhostConnects list with given vHost ip, user name and password
 		HostConnectSpec newHost = new HostConnectSpec();
 		newHost.setHostName("130.65.132.155");
 		newHost.setUserName("root");
@@ -47,9 +55,19 @@ public class VcenterManager {
 		
 	}
 
+	public static void setVhostNameIn14Map() throws Exception{
+		// pre define the vhostNameIn14Map
+		HashMap<String, String> Map = new HashMap<String, String>();
+	    Map.put("130.65.132.151", "t03-vHost01-cum1-lab1 _.132.151");
+	    Map.put("130.65.132.155", "t03-vHost01-cum1-proj1_132.155");
+	    Map.put("130.65.132.159", "t03-vHost01-cum1-lab2_132.159");
+	    VcenterManager.vhostNameIn14Map=Map;
+	    
+	}
 	
-	public static ArrayList<HostSystem> findandUpdateVhostsInVcenter() throws Exception{  
-	//find all vHost in this vCenter and then update usedVhosts list
+	public static HostSystem[] findandUpdateVhostsInVcenter() throws Exception{  
+	//runtime find all vHost in this vCenter and then update usedVhosts list
+		
 		System.out.println("finding and updating vHosts in this vCenter....");
 		Folder vhostFolder = VcenterManager.theVcenter.getHostFolder(); 
 		ManagedEntity[] mes =  
@@ -58,7 +76,26 @@ public class VcenterManager {
 		for(ManagedEntity me : mes){			
 			VcenterManager.usedVhosts.add( (HostSystem) me);
 		}
-		return VcenterManager.usedVhosts;
+		HostSystem[] vhosts = new HostSystem[mes.length] ;
+		for(int i=0; i<mes.length; i++){
+			vhosts[i]=(HostSystem) mes[i];
+		}
+		return vhosts;
+	}
+	
+	public static void updateVmNameToVhostNameMap() throws Exception{  
+		 //runtime update the VmNameToVhostNameMap
+		
+		HostSystem[] vhosts=findandUpdateVhostsInVcenter();
+		for (HostSystem vhost: vhosts){
+			String vhostname=vhost.getName();
+			VirtualMachine[] vms=vhost.getVms();
+			for(VirtualMachine vm : vms) {
+				String vmname=vm.getName();
+				VcenterManager.vmNameToVhostNameMap.put(vmname, vhostname);
+			}			
+		}
+		System.out.println("vmNameToVhostNameMap is updated");
 	}
 	
 	public static HostSystem findFirstAvailableVhost() throws Exception{ //need to test
@@ -73,9 +110,6 @@ public class VcenterManager {
 	
 	}
 
-
-
-	
 	
 	public static void addBackupVhostToVcenter(ArrayList<HostConnectSpec> backupVhostConnects) //need to test
 			throws Exception{ 
@@ -135,7 +169,6 @@ public class VcenterManager {
 		return vms;
 	}
 
-	
 	
 
 

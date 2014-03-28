@@ -1,5 +1,7 @@
 package ling.cmpe283project1;
 
+import java.util.HashMap;
+
 import com.vmware.vim25.VirtualMachineQuickStats;
 import com.vmware.vim25.mo.Folder;
 import com.vmware.vim25.mo.HostSystem;
@@ -9,13 +11,14 @@ import com.vmware.vim25.mo.VirtualMachine;
 import com.vmware.vim25.mo.VirtualMachineSnapshot;
 
 public class VmManager {
-
+	
 	public static void createVmSnapshot(VirtualMachine vm) throws Exception {
 		// create a snapshot for selected virtual machine
 		String snapshotname = vm.getName() + "_SnapShot";
 		String description = "new snapshot of " + vm.getName();
 		
 		Task task = vm.createSnapshot_Task(snapshotname, description, false, false);
+		System.out.println("creating " + snapshotname + " now....");
 		if (task.waitForTask() == Task.SUCCESS)
 		System.out.println(snapshotname + " was created.");
 		else System.out.println(snapshotname + " create failed.");
@@ -37,7 +40,7 @@ public class VmManager {
 	}	
 	
 	public static void printStatics(VirtualMachine vm){
-		System.out.println(vm.getName() + " statics --------------- ");		
+		System.out.println("\nVM " +vm.getName() + " statics --------------- ");		
 		System.out.println("Name: " + vm.getName());
 		System.out.println("Guest OS: "
 		+ vm.getSummary().getConfig().guestFullName);
@@ -58,6 +61,7 @@ public class VmManager {
 		System.out.println( "ConsumedOverheadMemory: " + vqs.getConsumedOverheadMemory() + " MB");
 		System.out.println( "FtLatencyStatus: " + vqs.getFtLatencyStatus());
 		System.out.println( "GuestHeartbeatStatus: " + vqs.getGuestHeartbeatStatus());
+		System.out.println( "End of statics ---------------------- ");
 		//}
 	}
 	
@@ -70,6 +74,7 @@ public class VmManager {
 	}
 	
 	public static VirtualMachine findVmByNameInVcenter(String vmname) throws Exception{
+		// this vmname is the actual name not like ip address
 		if (VcenterManager.theVcenter== null)  throw new Exception("vCenter is not defined");
 		System.out.println("Searching for VM " +vmname+ " now....");
 		Folder vmFolder = VcenterManager.theVcenter.getVmFolder();
@@ -79,5 +84,15 @@ public class VmManager {
 		else System.out.println("VM " +vmname+ " is found");
 		return vm;
 	}
-		
+	
+	public static String findVhostNameByVmName(String vmname) throws Exception{
+		if (VcenterManager.theVcenter== null)  throw new Exception("vCenter is not defined");
+		if (VcenterManager.vmNameToVhostNameMap== null)  throw new Exception("vmNameToVhostNameMap is not set up");
+		if (VcenterManager.vmNameToVhostNameMap.containsKey(vmname)) 
+			return VcenterManager.vmNameToVhostNameMap.get(vmname);
+		else {
+			System.out.println(vmname+"'s vhost is not found");
+			return null;		
+		}
+	}
 }
