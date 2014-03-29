@@ -13,8 +13,8 @@ public class TestHelloVM {
 		//testfindVmByNameInVcenter(); //test success
 		//testSetVmPoweron();	//test success
 		//testfindAllVMsinVcenter(); //test success
-        testPingVM();  //test success
-        testCheckPowerState();
+        //testPingVM();  //test success
+        //testCheckPowerState(); //test success //could get state when network connection failed(ping failed)
         //testStatics(); //test success 
 		
 		//testfindAllVhostInVcenter();//test success
