@@ -2,10 +2,7 @@
 
 package ling.cmpe283project1;
 
-import java.util.HashMap;
-
 import com.vmware.vim25.VirtualMachinePowerState;
-import com.vmware.vim25.mo.HostSystem;
 import com.vmware.vim25.mo.VirtualMachine;
 
 

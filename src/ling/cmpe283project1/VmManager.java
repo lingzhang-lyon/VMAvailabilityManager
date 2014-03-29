@@ -1,14 +1,10 @@
 package ling.cmpe283project1;
 
-import java.util.HashMap;
-
 import com.vmware.vim25.VirtualMachineQuickStats;
 import com.vmware.vim25.mo.Folder;
-import com.vmware.vim25.mo.HostSystem;
 import com.vmware.vim25.mo.InventoryNavigator;
 import com.vmware.vim25.mo.Task;
 import com.vmware.vim25.mo.VirtualMachine;
-import com.vmware.vim25.mo.VirtualMachineSnapshot;
 
 public class VmManager {
 	

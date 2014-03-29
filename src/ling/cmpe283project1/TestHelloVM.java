@@ -1,7 +1,6 @@
 package ling.cmpe283project1;
 
-import java.net.URL;
-import java.util.ArrayList;
+
 
 import com.vmware.vim25.*;
 import com.vmware.vim25.mo.*;
@@ -220,8 +219,8 @@ public class TestHelloVM {
 	
 	public static void testRevertVhostToSnapshot() throws Exception{
 		VcenterManager.setVcenter();
-		HostSystem vhost=VhostManager.findVhostByNameInVcenter("130.65.132.159");
-		VhostManager.recoverVhostFromSnapshot(vhost);
+		//HostSystem vhost=VhostManager.findVhostByNameInVcenter("130.65.132.159");
+		VhostManager.recoverVhostFromSnapshot("130.65.132.159");
 		
 	}
 
