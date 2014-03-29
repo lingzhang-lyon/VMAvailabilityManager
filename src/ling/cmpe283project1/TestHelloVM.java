@@ -13,7 +13,8 @@ public class TestHelloVM {
 		//testfindVmByNameInVcenter(); //test success
 		//testSetVmPoweron();	//test success
 		//testfindAllVMsinVcenter(); //test success
-        //testPingVM();  //test success
+        testPingVM();  //test success
+        testCheckPowerState();
         //testStatics(); //test success 
 		
 		//testfindAllVhostInVcenter();//test success
@@ -87,6 +88,14 @@ public class TestHelloVM {
 		}
 				
 	}
+    
+    public static void testCheckPowerState() throws Exception{
+    	VcenterManager.setVcenter();
+		System.out.println("vCenter is : " + VcenterManager.theVcenter.getName());  
+		VirtualMachine vm = VmManager.findVmByNameInVcenter("T03-VM02-Lin-Ling");
+		System.out.println(vm.getName() + vm.getRuntime().getPowerState() );
+    }
+    
 
 	public static void testStatics() throws Exception{		
 		VcenterManager.setVcenter();
@@ -237,6 +246,7 @@ public class TestHelloVM {
 		 System.out.println("VM "+ vm.getName() +" belong to "+ hostip);
 
 	 }
+	
 	
 	
 	

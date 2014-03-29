@@ -45,9 +45,13 @@ public class Test3AvailabilityManager
 	
 	public static void main(String[] args) throws Exception {
 		
-		AvailabilityManager.setAvailabilityManager();		
+		AvailabilityManager.setAvailabilityManager();  //will set up VcenterManager 
+		
+		//we can use different thread for monitor and backup
 		//monitor();
-		backupVMPeriodically(60000);
+		//AvailabilityManager.backupVMPeriodically(60000);  //test success
+		//AvailabilityManager.backupVhostPeriodically(60000); //test success
+		testfailover();//need to test
 		
 	}
 	
@@ -59,37 +63,26 @@ public class Test3AvailabilityManager
 			for(VirtualMachine vm : vms){
 				String vmname=vm.getName();
 				if (PingManager.pingVM(vm)){//if ping vm successfully
-					
+					System.out.println(vmname +" is fine now");
 				}//end if ping vm successfully
 				else if (vm.getRuntime().getPowerState()==VirtualMachinePowerState.poweredOff  ){ 
-					  //if ping vm failed but the status is powered off normally
-					  System.out.println(vmname +" is powered off normally now");
+					//if ping vm failed but the status is powered off normally
+					System.out.println(vmname +" is powered off normally now");
 				}//end if ping vm failed but the status is powered off normally
 				else {//if ping vm failed and the status if not powered off
-							
+					//try to ping several times, make sure no false alarm to triger failover
+					System.out.println("trying to ping again now ");
+					//if failed fixed times
+					System.out.println(vmname +" is abnormally now");
+					//createAlarm!! start failover for the vm;
 				} //end if ping vm failed
 			
 			}//end of for each vm loop
 			
 		}//end of while allow to start loop
 	}
+    
+	
 
 
-
-	public static void backupVMPeriodically(int interval) throws Exception {
-	    //back up the all the vm every interval time
-		if (interval <= 0)
-			interval = 600000; //default time is 10min
-		
-		while (AvailabilityManager.AllowToBackup){
-			VirtualMachine[] vms = VcenterManager.findAllVmsInVcenter();
-			System.out.println("Start to backup now");
-			for (VirtualMachine vm : vms) {
-				VmManager.createVmSnapshot(vm);
-			}
-			System.out.println("finished backup. "+ interval/1000 +"sec later will back up again, now waiting....");
-			Thread.sleep(interval);			
-		}
-		
-	}	
 }

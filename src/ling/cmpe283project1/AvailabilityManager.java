@@ -45,13 +45,14 @@ public class AvailabilityManager
 	public static void main(String[] args) throws Exception {
 		
 		setAvailabilityManager();		
-		monitor();
+		//monitor();
 		
 	}
 	
 	public static void setAvailabilityManager() throws Exception{  //constructor
 		VcenterManager.setVcenter();//set the predefined vCenter
 		VcenterManager.setBackupVhostConnects(); // set up backup vHost List
+		VcenterManager.setVhostNameIn14Map(); //set up VhostNameIn14Map
 		AvailabilityManager.FailTimer= new HashMap<String, Integer> ();
 		AvailabilityManager.SuccessTimer= new HashMap<String, Integer> ();
 		AvailabilityManager.allowToStartMonitor();
@@ -59,64 +60,51 @@ public class AvailabilityManager
 	}
 	
 	
-	private static void allowToStartMonitor(){
+	public static void allowToStartMonitor(){
 		AllowToMonitor=true;
 	}
 	
-	private static void allowToStartBackup(){
+	public static void allowToStartBackup(){
 		AllowToBackup=true;
 	}
 	
-	private static void stopAllowMonitor(){
+	public static void stopAllowMonitor(){
 		AllowToMonitor=false;
 	}
 	
-	private static void monitor() throws Exception{
-//		while (AllowToStart) {
-//			VirtualMachine[] vms = VcenterManager.findAllVmsInVcenter();
-//			for(VirtualMachine vm : vms){
-//				if (PingManager.pingVM(vm)){//if ping vm successfully
-//					FailTimer.put(vm, 0);
-//					if(!SuccessTimer.containsKey(vm)) SuccessTimer.put(vm, 1);
-//					else SuccessTimer.put(vm, SuccessTimer.get(vm)+1);
-//				    if(SuccessTimer.get(vm)==10){
-//				    	VmManager.printStatics(vm);
-//				    	VmManager.createVmSnapshot(vm);
-//				    	SuccessTimer.put(vm, 0);
-//				    }
-//				}
-//				else{ //if ping vm failed
-//					if(!FailTimer.containsKey(vm)) FailTimer.put(vm, 1);
-//					else FailTimer.put(vm, FailTimer.get(vm)+1);
-//				    if(FailTimer.get(vm)==5){
-//				    	FailTimer.put(vm, 0);
-//				    	HostSystem parentvhost=(HostSystem) vm.getParent(); //get failed vm's vHost
-//				    	int pingVhostTime=0;
-//				    	while (pingVhostTime<=5){  //try to ping parentvhost
-//				    		if (!PingManager.pingVhost(parentvhost)) pingVhostTime++;
-//				    		else {
-//				    			pingVhostTime=0;
-//				    			break;			//once ping parentvhost successfully, will exit while loop	    			
-//				    		}
-//				    	}
-//				    	if(pingVhostTime==5) { //ping parentvhost failed 5 times, reboot parentvhost
-//				    		if(!VhostManager.rebootVhost(parentvhost)) { //if reboot failed, migrate to new vHost
-//				    			HostSystem newvhost = VcenterManager.findFirstAvailableVhost();
-//				    			VhostManager.migrateVmsToNewVhost(parentvhost, newvhost);
-//				    		}
-//				    		else{} //reboot successfully , do nothing, start monitor again, will eventually go to next step;
-//				    	}
-//				    	else { //if ping parentvhost successfully
-//				    		//VmManager.revertToSnapshot(vm, snapshotname);/// need to figure out!!!!!!!!!
-//				    		//--------------------------------------------
-//				    		
-//				    	}				    	
-//				    }//end if failed to ping vm 5 times									
-//				} //end if ping vm failed
-//			
-//			}//end of for each vm loop
-//			
-//		}//end of while allow to start loop
+	public static void backupVMPeriodically(int interval) throws Exception {
+	    //back up the all the vm in the vCenter every interval time
+		if (interval <= 0)
+			interval = 600000; //default time is 10min
+		
+		while (AvailabilityManager.AllowToBackup){
+			VirtualMachine[] vms = VcenterManager.findAllVmsInVcenter();
+			System.out.println("Start to backup VMs now...");
+			for (VirtualMachine vm : vms) {
+				VmManager.createVmSnapshot(vm);
+			}
+			System.out.println("finished VMs backup. "+ interval/1000 +"sec later will back up again, now waiting....");
+			Thread.sleep(interval);			
+		}		
+	}
+	
+	public static void backupVhostPeriodically(int interval) throws Exception {
+		//back up the all the vhost in the vCenter every interval time
+		//pre-condition: need to set up the VcenterManager theVcenter and vhostNameIn14Map
+		// to make sure could find vhosts from admin server.
+		
+		if (interval <= 0)
+			interval = 600000; //default time is 10min
+		
+		while (AvailabilityManager.AllowToBackup){
+			HostSystem[] vhosts = VcenterManager.findandUpdateVhostsInVcenter();
+			System.out.println("Start to backup vhosts now...");
+			for (HostSystem vhost : vhosts) {
+				VhostManager.createVhostSnapshot(vhost);
+			}
+			System.out.println("finished vhosts backup. "+ interval/1000 +"sec later will back up again, now waiting....");
+			Thread.sleep(interval);			
+		}
 	}
 		
 	

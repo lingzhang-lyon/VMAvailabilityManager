@@ -57,12 +57,12 @@ public class VhostManager {
      }
      
 
-     public static VirtualMachine findVhostAsVMInAdminServer(HostSystem vhost) throws Exception {
+     public static VirtualMachine findVhostAsVMInAdminServerByName(String vhostname) throws Exception {
     	//initial the map to match the vhost name in admin server
     	 VcenterManager.setVhostNameIn14Map();
     	 
     	 // get the vhost name in admin server
-    	String vhostname=vhost.getName(); 
+    	 
     	String vhostnameIn14 = VcenterManager.vhostNameIn14Map.get(vhostname);
     	
  		URL url = new URL("https://130.65.132.14/sdk");
@@ -82,7 +82,8 @@ public class VhostManager {
      public static void createVhostSnapshot(HostSystem vhost) throws Exception{ 
     	 //create a snapshot for selected vHost in the admin server (130.65.132.14) 
     	 //find vhost as Vm in admin server
-    	 VirtualMachine vhostAsVm=findVhostAsVMInAdminServer(vhost);
+    	 String vhostname=vhost.getName();
+    	 VirtualMachine vhostAsVm=findVhostAsVMInAdminServerByName(vhostname);
  		
  		//start create snapshot
  		
@@ -102,11 +103,11 @@ public class VhostManager {
      }
      
      
-     public static void recoverVhostFromSnapshot(HostSystem vhost) throws Exception{
+     public static void recoverVhostFromSnapshot(String vhostname) throws Exception{
     	 //recover vHost by snapshot
     	 
     	//find vhost as Vm in admin server 
-    	VirtualMachine vhostAsVm=findVhostAsVMInAdminServer(vhost);
+    	VirtualMachine vhostAsVm=findVhostAsVMInAdminServerByName(vhostname);
  	
  		// revert vhost to snapshot
  		Task revertTask = vhostAsVm.revertToCurrentSnapshot_Task(null);
