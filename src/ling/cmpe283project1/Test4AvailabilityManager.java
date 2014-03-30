@@ -6,9 +6,10 @@ public class Test4AvailabilityManager {  //test threads
 	    System.out.println("Main ThreadId: " + Thread.currentThread().getId());
 		AvailabilityManager.setAvailabilityManager();
 		
-		new Thread(new BackupVmThread()).start();  
-		new Thread(new BackupVhostThread()).start();
-		new Thread(new MonitorThread()).start();
+		//new Thread(new BackupThread()).start(); //test success 
+		
+		//new Thread(new MonitorAllVhostInVcenterThread()).start(); //when VM disconnect, test success
+		new Thread(new MonitorOneVhostThread()).start();
 		
    }
 

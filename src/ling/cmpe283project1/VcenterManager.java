@@ -174,7 +174,7 @@ public class VcenterManager {
 		//Action: try different ways to recover the failed VM 
 		//Precondition:  the VM could not ping through and the status is not powered off normally 
 		
-		System.out.println("trying to failover for "+ vmname + " now...");
+		System.out.println("\ntrying to failover for "+ vmname + " now...");
 		
 		//first figure out the parent vHost is dead or not 
 		System.out.println("finding "+ vmname + "'s parent vhost now...");

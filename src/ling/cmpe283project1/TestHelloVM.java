@@ -11,10 +11,10 @@ public class TestHelloVM {
 
 		//testfindVmByNameInVcenter(); //test success
 		//testSetVmPoweron("T03-VM02-Lin-Ling");	//test success
-		testSetAllVmOfVhostPoweron("130.65.132.159");
+		//testSetAllVmOfVhostPoweron("130.65.132.159");
 		//testfindAllVMsinVcenter(); //test success
         //testPingAllVM();  //test success
-		//testPingOneVM("T03-VM02-Lin-Ling"); //test success
+		testPingOneVM("T03-VM02-Lin-Ling"); //test success
         //testCheckPowerState(); //test success //could get state when network connection failed(ping failed)
         //testStatics(); //test success 
 		

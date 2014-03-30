@@ -105,6 +105,7 @@ public class Test3AvailabilityManager   //test methods for threads
 		VirtualMachine vm= VmManager.findVmByNameInVcenter(vmname);
 		if(PingManager.pingVM(vm)) 
 		   System.out.println("ping VM " +vmname+" success now");
+		else System.out.println("ping VM " +vmname+" failed");
 		
 	}
 	

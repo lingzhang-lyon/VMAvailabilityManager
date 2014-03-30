@@ -30,9 +30,7 @@ public class VmManager {
 		else System.out.println(snapshotname + " create failed.");
 	}
 	
-	public static void removeSnapshot(VirtualMachine vm, String snapshotname){
-			
-	}
+
 	
 	public static void revertToSnapshotAndPoweron(VirtualMachine vm) throws Exception {
 		//recover the virtual machine from snapshot
@@ -42,7 +40,11 @@ public class VmManager {
 				System.out.println("VM "+vm.getName()+" has been reverted to recent snapshot.");			
 		  else 
 				System.out.println("fail to recover VM "+vm.getName());
-		  VmManager.setPowerOn(vm);
+		  if (VmManager.setPowerOn(vm)){
+			  if (VmManager.makeSureVmIpConfigured(vm))		
+					System.out.println(vm.getName() + " is powered on and its ip is configured now");
+		  }
+			  
 	}	
 	
 	public static void printStatics(VirtualMachine vm){
@@ -97,12 +99,12 @@ public class VmManager {
 	public static VirtualMachine findVmByNameInVcenter(String vmname) throws Exception{
 		// this vmname is the actual name not like ip address
 		if (VcenterManager.theVcenter== null)  throw new Exception("vCenter is not defined");
-		System.out.println("Searching for VM " +vmname+ " now....");
+		//System.out.println("Searching for VM " +vmname+ " now....");
 		Folder vmFolder = VcenterManager.theVcenter.getVmFolder();
 		VirtualMachine vm =
 					(VirtualMachine) new InventoryNavigator(vmFolder).searchManagedEntity("VirtualMachine", vmname);
 		if (vm== null)  throw new Exception("vm is not found");
-		else System.out.println("VM " +vmname+ " is found");
+		//else System.out.println("VM " +vmname+ " is found");
 		return vm;
 	}
 	

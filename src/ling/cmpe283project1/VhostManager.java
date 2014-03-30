@@ -17,14 +17,14 @@ public class VhostManager {
 	
      public static HostSystem findVhostByNameInVcenter(String vhostname) throws Exception{
     	 //this vhost name is like ip address
-    	 System.out.println("finding vhost " + vhostname + " now...");
+    	 //System.out.println("finding vhost " + vhostname + " now...");
     	 if (VcenterManager.theVcenter== null)  throw new Exception("vCenter is not defined");
     	 Folder vHostFolder = VcenterManager.theVcenter.getHostFolder();
 		 HostSystem vhost =
 					(HostSystem) new InventoryNavigator(vHostFolder).searchManagedEntity("HostSystem", vhostname);
 		 
-	     if(vhost!=null) System.out.println( vhostname + " is found ");
-	     else System.out.println( vhostname + " is not found ");
+	     //if(vhost!=null) System.out.println( vhostname + " is found ");
+	     //else System.out.println( vhostname + " is not found ");
 		 return vhost;
     	 
      }
@@ -82,7 +82,7 @@ public class VhostManager {
     	 //pre condition: the vhost should be normal, could be ping through
     	 //create a snapshot for selected vHost in the admin server (130.65.132.14) 
     	 String vhostname=vhost.getName();
-    	 System.out.println("Trying to create snapshot for " + vhostname + " now...");
+    	 System.out.println("\nTrying to create snapshot for " + vhostname + " now...");
     	 
     	 //make sure vhost could be ping through
     	 if( !PingManager.pingVhost(vhost) ) {
@@ -128,55 +128,44 @@ public class VhostManager {
 		  
 		  //power on vhost and vms
 		  System.out.println("trying to poweron the vhost and all the VMs on it now.....");
-		  if(VmManager.setPowerOn(vhostAsVm)){	
-		  
+		  if(VmManager.setPowerOn(vhostAsVm)){			  
 			  // make sure the powering on process finished
 			  HostSystem vhost=VhostManager.findVhostByNameInVcenter(vhostname);
 				boolean hasPingThrough=false;
 				do {  
 					if(PingManager.pingVhost(vhost)) hasPingThrough=true;			
 					} while (hasPingThrough==false);			
-				System.out.println(vhostname + " is powered on now");
-			 
-			  VirtualMachine[] vms =VhostManager.findAllVmsInVhost(vhost);
-			  for(VirtualMachine vm : vms) {
-				  if(VmManager.setPowerOn(vm)){			  
-				  boolean VMhasPingThrough=false;
-					do {  
-						if(PingManager.pingVM(vm)) VMhasPingThrough=true;			
-						} while (VMhasPingThrough==false);			
-					System.out.println(vhostname + " is powered on now");
-				  }
-				  
-			  }
+				System.out.println(vhostname + " is powered on and could ping through now");
+				
+				///make sure will not end until all the VM is powered on !!!!
+				int WAITTIME=60000;
+				do {
+					System.out.println("after revert vhost, wait for "+ WAITTIME/1000+"s, then power on all the VMs in this vhost......");
+					Thread.sleep(WAITTIME);
+				} while (!VhostManager.setAllVmsInVhostPowerOnAndConfigure(vhost));
+				
+				
 		  }
  				 
  		
      
      }
 
-	public static boolean rebootVhost(HostSystem vhost) throws Exception{ //may not need
-		 //restart selected vHost
-		System.out.println("try to reboot" + vhost.getName() + " now....");
-		Task task= vhost.rebootHost(true);
-		if (task.waitForTask() == Task.SUCCESS) {
-		  System.out.println(vhost.getName() + "is rebooted");
-		  return true;
-		}
-		else {
-			System.out.println(vhost.getName() + " failed to reboot"); 
-			return false;
-		}
-	 }
+
 	
-	public static void setAllVmsInVhostPowerOnAndConfigure(HostSystem vhost) throws Exception{
+	public static boolean setAllVmsInVhostPowerOnAndConfigure(HostSystem vhost) throws Exception{
+		boolean allsuccess=false;
 		VirtualMachine[] vms= VhostManager.findAllVmsInVhost(vhost);
 		for(VirtualMachine vm :vms) {
 			if(VmManager.setPowerOn(vm)){			  
 				  if (VmManager.makeSureVmIpConfigured(vm))		
 					System.out.println(vm.getName() + " is powered on and its ip is configured now");
-				  }
+				  allsuccess=true;
+			}
+			else allsuccess=false;
 		}
+		return allsuccess;
+		
 	}
 
 
