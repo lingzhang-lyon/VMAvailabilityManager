@@ -22,7 +22,7 @@ public class VcenterManager {
 	public static HashMap<String, String> vhostNameIn14Map; //pre-define
 	static public ArrayList<HostSystem> usedVhosts; //runtime-update
 	static public HashMap<String, String> vmNameToVhostNameMap; //runtime-update
-	private static int ReTryPingVhostTimes=5;  //for failover
+	private static int ReTryPingVhostTimes=2;  //for failover
 	
 	public static void setVcenter() throws Exception{   //constructor
 		//initial the vCenter with given url, user name and password.
@@ -174,27 +174,40 @@ public class VcenterManager {
 		//Action: try different ways to recover the failed VM 
 		//Precondition:  the VM could not ping through and the status is not powered off normally 
 		
+		System.out.println("trying to failover for "+ vmname + " now...");
+		
 		//first figure out the parent vHost is dead or not 
+		System.out.println("finding "+ vmname + "'s parent vhost now...");
 		String vhostname = VmManager.findVhostNameByVmName(vmname);
 		HostSystem parentvhost =VhostManager.findVhostByNameInVcenter(vhostname);
+		System.out.println("checking the parent vhost now...");
 		if (parentvhost!=null && PingManager.pingVhost(parentvhost)){	//if vHost is found and normal, you should be able to find the VM 		
+			System.out.println("the parent vHost is normal now, trying to recover " + vmname +" now...");			
 			//first try to power on the VM // do we need?
 			VirtualMachine vm = VmManager.findVmByNameInVcenter(vmname);
 			VmManager.setPowerOn(vm);
 			
 			if(vm==null||!PingManager.pingVM(vm)){
 			//if still could not ping through VM
+				System.out.println("still could not ping through "+ vmname + ", will revert to snapshot");
 				VmManager.revertToSnapshotAndPoweron(vm);
 			}
 		}
 		else { //if vHost could not found or is abnormal
               //try to ping vHost several times to make sure it's not alarm by mistake
+			System.out.println("the parent vhost ping failed once");
+			System.out.println("retrying ping for " + ReTryPingVhostTimes + " more times now...");
 			for(int i=0; i<VcenterManager.ReTryPingVhostTimes; i++){
-				if (parentvhost!=null && PingManager.pingVhost(parentvhost)) 
-					break; //will exit failover method, then the monitorThread will check VM again and call failover again
+				if (parentvhost!=null && PingManager.pingVhost(parentvhost)) {
+					System.out.println("the parent vhost is actually normal, will retry to failover the VM again");
+					return;	
+				}//will exit failover method, then the monitorThread will check VM again and call failover again
+				else System.out.println("the parent vhost ping failed for " + (i+1)+ " times ");
 			}
+			
 			//if after checked ReTryPingVhostTimes times, still could not ping through vhost
-			VhostManager.recoverVhostFromSnapshot(vhostname);
+			//System.out.println("simulating revert " +vmname +"'s vhost to snapshot: " + vhostname);
+			VhostManager.recoverVhostFromSnapshotAndPoweron(vhostname);
 			//after recover vhost, monitorThread will check VM again and call failover again to recover VM
 			
 //			//if could not recover vhost from snapshot ---should not happen!!!

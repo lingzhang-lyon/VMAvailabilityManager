@@ -7,23 +7,28 @@ import com.vmware.vim25.mo.HostSystem;
 import com.vmware.vim25.mo.VirtualMachine;
 
 
-public class Test3AvailabilityManager
+public class Test3AvailabilityManager   //test methods for threads
 
 {   
 
-
-	
 	public static void main(String[] args) throws Exception {
 		
-		AvailabilityManager.setAvailabilityManager();  //will set up VcenterManager 
-		
-		//we can use different thread for monitor and backup
-		//monitor();
+		//AvailabilityManager.setAvailabilityManager();  //will set up VcenterManager 		
+		//we can use different thread for monitor and backup		
 		//backupVMPeriodically(60000);  //test success
 		//backupVhostPeriodically(60000); //test success
+
+		//test failover
+		//--first disconnect the network then test, but vhost is normal
+		//testFailOverMethod("T03-VM02-Lin-Ling"); //will try to recover VM //test success
+				
+		//--then test when vhost disconnect 
+		//TestHelloVM.testCreateVhostSnapshot("130.65.132.159");
+		 //then disconnect vhost "130.65.132.155" manually
+		 testFailOverMethod2("T03-VM02-Lin-Ling"); //will try to recover vhost
+
 		
-		failOver("T03-VM02-Lin-Ling");//need to test --first disconnect the network then test
-		
+		//monitor();  // need to test
 	}
 	
     
@@ -65,41 +70,6 @@ public class Test3AvailabilityManager
 	}
 	
 	
-	public static void failOver(String vmname) throws Exception {  //need to test
-		//Action: try different ways to recover the failed VM 
-		//Precondition:  the VM could not ping through and the status is not powered off normally )
-		
-		//first figure out the parent vHost is dead or not 
-		String vhostname = VmManager.findVhostNameByVmName(vmname);
-		HostSystem parentvhost =VhostManager.findVhostByNameInVcenter(vhostname);
-		if (parentvhost!=null && PingManager.pingVhost(parentvhost)){	//if vHost is found and normal, you should be able to find the VM 		
-			//first try to power on the VM // do we need?
-			VirtualMachine vm = VmManager.findVmByNameInVcenter(vmname);
-			VmManager.setPowerOn(vm);
-			
-			if(vm==null||!PingManager.pingVM(vm)){
-			//if still could not ping through VM
-				VmManager.revertToSnapshotAndPoweron(vm);
-			}
-		}
-		else { //if vHost could not found or is abnormal
-              //try to ping vHost several times to make sure it's not alarm by mistake
-			for(int i=0; i<5; i++){
-				if (parentvhost!=null && PingManager.pingVhost(parentvhost)) break; 
-			}
-			//if after checked 5 times, still could not ping through vhost
-			VhostManager.recoverVhostFromSnapshot(vhostname);
-			
-//			//if could not recover vhost from snapshot ---should not happen!!!
-//			//find other available vhost
-//			HostSystem newvhost = VcenterManager.findFirstAvailableVhost();
-//				// if found new vhost Migrate all VMs from the down vhost to new vhost
-//				VhostManager.migrateVmsToNewVhost(oldvhost, newvhost);
-						
-		}
-		
-	}
-		
 	public static void monitor() throws Exception{		
 		while (AvailabilityManager.AllowToMonitor) {
 			VirtualMachine[] vms = VcenterManager.findAllVmsInVcenter();
@@ -124,6 +94,60 @@ public class Test3AvailabilityManager
 			
 		}//end of while allow to start loop
 	}
+	
+	public static void testFailOverMethod(String vmname) throws Exception {		
+		//pre condtion: already have snapshot of the vm
+		   //  test disconnect the network of vm!!!!!!!!!
+		
+		
+		AvailabilityManager.setAvailabilityManager();
+		VcenterManager.failOver(vmname);
+		VirtualMachine vm= VmManager.findVmByNameInVcenter(vmname);
+		if(PingManager.pingVM(vm)) 
+		   System.out.println("ping VM " +vmname+" success now");
+		
+	}
+	
+	public static void testFailOverMethod2(String vmname) throws Exception {		
+		//pre condition: need first backup vhost 		
+		//then disconnect vhost manually
+		//Action:  test when vhost disconnect!!!!!!!!
+		AvailabilityManager.setAvailabilityManager();
+		
+		VirtualMachine vm= VmManager.findVmByNameInVcenter(vmname);
+		if(!PingManager.pingVM(vm)) 
+			System.out.println(vmname + " ping failed, need to failover");
+		
+		
+		VcenterManager.failOver(vmname);
+		System.out.println("sleep for a while waiting for vhost and vm be active....");
+		
+		Thread.sleep(60000);
+		
+		//after failover check vhost
+		System.out.println("Rechecking the Vhost and VM after failover now...");
+		String vhostname=VmManager.findVhostNameByVmName(vmname);
+		HostSystem vhost=VhostManager.findVhostByNameInVcenter(vhostname);
+		if(PingManager.pingVhost(vhost)) 
+			   System.out.println("ping VM " +vhostname+" success now");
+			else System.out.println("ping VM " +vhostname+" failed now");	
+		
+		//after failover check VM
+		//VirtualMachine vm= VmManager.findVmByNameInVcenter(vmname);
+		if(PingManager.pingVM(vm)) 
+		   System.out.println("ping VM " +vmname+" success now");
+		else System.out.println("ping VM " +vmname+" failed now");		
+		Thread.sleep(20000);
+		if(PingManager.pingVM(vm)) 
+			   System.out.println("ping VM " +vmname+" success now");
+			else System.out.println("ping VM " +vmname+" failed now");
+		
+	}
+
+
+
+
+
 
 
 }

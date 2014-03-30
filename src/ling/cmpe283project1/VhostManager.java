@@ -17,12 +17,14 @@ public class VhostManager {
 	
      public static HostSystem findVhostByNameInVcenter(String vhostname) throws Exception{
     	 //this vhost name is like ip address
+    	 System.out.println("finding vhost " + vhostname + " now...");
     	 if (VcenterManager.theVcenter== null)  throw new Exception("vCenter is not defined");
     	 Folder vHostFolder = VcenterManager.theVcenter.getHostFolder();
 		 HostSystem vhost =
 					(HostSystem) new InventoryNavigator(vHostFolder).searchManagedEntity("HostSystem", vhostname);
 		 
-	
+	     if(vhost!=null) System.out.println( vhostname + " is found ");
+	     else System.out.println( vhostname + " is not found ");
 		 return vhost;
     	 
      }
@@ -53,7 +55,9 @@ public class VhostManager {
      
 
      public static VirtualMachine findVhostAsVMInAdminServerByName(String vhostname) throws Exception {
-    	//initial the map to match the vhost name in admin server
+    	
+         System.out.println("finding vHost as Vm in admin server 14 now...");
+    	 //initial the map to match the vhost name in admin server
     	 VcenterManager.setVhostNameIn14Map();
     	 
     	 // get the vhost name in admin server
@@ -74,10 +78,20 @@ public class VhostManager {
  		return vhostAsVm;
      }
      
-     public static void createVhostSnapshot(HostSystem vhost) throws Exception{ 
+     public static void createVhostSnapshot(HostSystem vhost) throws Exception{    	 
+    	 //pre condition: the vhost should be normal, could be ping through
     	 //create a snapshot for selected vHost in the admin server (130.65.132.14) 
-    	 //find vhost as Vm in admin server
     	 String vhostname=vhost.getName();
+    	 System.out.println("Trying to create snapshot for " + vhostname + " now...");
+    	 
+    	 //make sure vhost could be ping through
+    	 if( !PingManager.pingVhost(vhost) ) {
+    		 System.out.println("could not ping through the vHost, it's abnormal, will not create snapshot");
+    	     return;		 
+    	 }   	 
+    	 
+    	 //find vhost as Vm in admin server
+    	
     	 VirtualMachine vhostAsVm=findVhostAsVMInAdminServerByName(vhostname);
  		
  		//start create snapshot
@@ -98,22 +112,45 @@ public class VhostManager {
      }
      
      
-     public static void recoverVhostFromSnapshot(String vhostname) throws Exception{
+     public static void recoverVhostFromSnapshotAndPoweron(String vhostname) throws Exception{
     	 //recover vHost by snapshot
-    	 
+    	System.out.println("\nstart to try to revert " + vhostname + " to snapshot...." );
     	//find vhost as Vm in admin server 
-    	VirtualMachine vhostAsVm=findVhostAsVMInAdminServerByName(vhostname);
+    	VirtualMachine vhostAsVm=VhostManager.findVhostAsVMInAdminServerByName(vhostname);
  	
  		// revert vhost to snapshot
  		Task revertTask = vhostAsVm.revertToCurrentSnapshot_Task(null);
-		  System.out.println("\ntrying to revert " + vhostAsVm.getName() + " to snapshot...." );
+		  System.out.println("reverting " + vhostAsVm.getName() + " to snapshot now...." );
 		  if (revertTask.waitForTask() == Task.SUCCESS) 
 				System.out.println("vHost "+vhostAsVm.getName()+" has been reverted to recent snapshot.");			
 		  else 
 				System.out.println("fail to recover vHost "+vhostAsVm.getName());
-		  VmManager.setPowerOn(vhostAsVm);
+		  
+		  //power on vhost and vms
+		  System.out.println("trying to poweron the vhost and all the VMs on it now.....");
+		  if(VmManager.setPowerOn(vhostAsVm)){	
+		  
+			  // make sure the powering on process finished
+			  HostSystem vhost=VhostManager.findVhostByNameInVcenter(vhostname);
+				boolean hasPingThrough=false;
+				do {  
+					if(PingManager.pingVhost(vhost)) hasPingThrough=true;			
+					} while (hasPingThrough==false);			
+				System.out.println(vhostname + " is powered on now");
+			 
+			  VirtualMachine[] vms =VhostManager.findAllVmsInVhost(vhost);
+			  for(VirtualMachine vm : vms) {
+				  if(VmManager.setPowerOn(vm)){			  
+				  boolean VMhasPingThrough=false;
+					do {  
+						if(PingManager.pingVM(vm)) VMhasPingThrough=true;			
+						} while (VMhasPingThrough==false);			
+					System.out.println(vhostname + " is powered on now");
+				  }
+				  
+			  }
+		  }
  				 
-		 // si.getServerConnection().logout();
  		
      
      }
@@ -131,6 +168,16 @@ public class VhostManager {
 			return false;
 		}
 	 }
+	
+	public static void setAllVmsInVhostPowerOnAndConfigure(HostSystem vhost) throws Exception{
+		VirtualMachine[] vms= VhostManager.findAllVmsInVhost(vhost);
+		for(VirtualMachine vm :vms) {
+			if(VmManager.setPowerOn(vm)){			  
+				  if (VmManager.makeSureVmIpConfigured(vm))		
+					System.out.println(vm.getName() + " is powered on and its ip is configured now");
+				  }
+		}
+	}
 
 
      

@@ -10,6 +10,16 @@ public class VmManager {
 	
 	public static void createVmSnapshot(VirtualMachine vm) throws Exception {
 		// create a snapshot for selected virtual machine
+		//pre condition:  vm is noramal and could be ping through
+		
+		System.out.println("Trying to create snapshot for " + vm.getName() + " now...");
+		
+		//first make sure vm could be ping through
+		if( !PingManager.pingVM(vm) ) {
+	   		 System.out.println("could not ping through VM, it's abnormal, will not create snapshot");
+	   	     return;		 
+	   	 }
+		
 		String snapshotname = vm.getName() + "_SnapShot";
 		String description = "new snapshot of " + vm.getName();
 		
@@ -61,12 +71,27 @@ public class VmManager {
 		//}
 	}
 	
-	public static void setPowerOn(VirtualMachine vm) throws Exception {
+	public static boolean setPowerOn(VirtualMachine vm) throws Exception {
 		Task task = vm.powerOnVM_Task(null);
-		System.out.println("we are powerring on " + vm.getName() + " now, please wait...");
-		if (task.waitForTask() == Task.SUCCESS) 
-		  System.out.println(vm.getName() + " is powered on");
-		else System.out.println(vm.getName() + " failed to power on");
+		System.out.println("Try to start poweron " + vm.getName() + " now, please wait...");
+		if (task.waitForTask() == Task.SUCCESS) {
+		  System.out.println(vm.getName() + " poweron started, still powering on and configureing now...");
+		  return true;
+		}
+		
+		else {
+			System.out.println(vm.getName() + " failed to poweron");
+			return false;
+		}
+
+	}
+	
+	public static boolean makeSureVmIpConfigured(VirtualMachine vm) throws Exception{
+		boolean VMhasPingThrough=false;
+		do {  
+			if(PingManager.pingVM(vm)) VMhasPingThrough=true;			
+			} while (VMhasPingThrough==false);	
+		return VMhasPingThrough;
 	}
 	
 	public static VirtualMachine findVmByNameInVcenter(String vmname) throws Exception{

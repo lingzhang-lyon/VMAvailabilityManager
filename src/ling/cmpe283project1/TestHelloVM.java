@@ -10,9 +10,11 @@ public class TestHelloVM {
 	public static void main(String[] args) throws Exception {   
 
 		//testfindVmByNameInVcenter(); //test success
-		//testSetVmPoweron();	//test success
+		//testSetVmPoweron("T03-VM02-Lin-Ling");	//test success
+		testSetAllVmOfVhostPoweron("130.65.132.159");
 		//testfindAllVMsinVcenter(); //test success
-        //testPingVM();  //test success
+        //testPingAllVM();  //test success
+		//testPingOneVM("T03-VM02-Lin-Ling"); //test success
         //testCheckPowerState(); //test success //could get state when network connection failed(ping failed)
         //testStatics(); //test success 
 		
@@ -23,10 +25,11 @@ public class TestHelloVM {
 		//testRemoveVhostFromVcenter();  //test success	
 		//testMigrateToNewVhost(); //test success
 		
-		//testCreateVhostSnapshot(); //test success
+		//testCreateVhostSnapshot("130.65.132.159"); //test success
 		//testRevertVhostToSnapshot(); //test success
-		//testCreateVMSnapshot(); //test success
-        //testRevertToSnapshot();  //test success
+		//testCreateAllVMSnapshot(); //test success 
+		//testCreateOneVMSnapshot("T03-VM02-Lin-Ling"); //test success
+        //testRevertOneVMToSnapshot("T03-VM02-Lin-Ling");  //test success
 	
 		//testRebootVhost(); //failed!!!! //no need
 		//testGetVhostofVmFromMap(); //sucess
@@ -54,15 +57,22 @@ public class TestHelloVM {
 		 
      }
      
-     public static void testSetVmPoweron() throws Exception{ //test restart when power off //success
+     public static void testSetVmPoweron(String vmname) throws Exception{ //test restart when power off //success
     	VcenterManager.setVcenter();
      	System.out.println("vCenter is : " + VcenterManager.theVcenter.getName());     	
-    	 VirtualMachine vm = VmManager.findVmByNameInVcenter("T03-VM01C-Win-Jiawei");
+    	 VirtualMachine vm = VmManager.findVmByNameInVcenter(vmname);
     	 VirtualMachinePowerState vmps = vm.getRuntime().getPowerState();
     	 System.out.println(vm.getName()+"'s status is " + vmps);
 		 if (vmps==VirtualMachinePowerState.poweredOff ) {
 			 VmManager.setPowerOn(vm);
 		 }
+     }
+     
+     public static void testSetAllVmOfVhostPoweron(String vhostname) throws Exception{ //test restart when power off //success
+    	VcenterManager.setVcenter();
+     	System.out.println("vCenter is : " + VcenterManager.theVcenter.getName()); 
+     	HostSystem vhost=VhostManager.findVhostByNameInVcenter(vhostname);
+     	VhostManager.setAllVmsInVhostPowerOnAndConfigure(vhost);
      }
      
      public static void testfindAllVMsinVcenter() throws Exception{
@@ -74,7 +84,7 @@ public class TestHelloVM {
     	}	
     }
     
-    public static void testPingVM() throws Exception{
+    public static void testPingAllVM() throws Exception{
 		VcenterManager.setVcenter();
 		System.out.println("vCenter is : " + VcenterManager.theVcenter.getName());   	
 		VirtualMachine[] vms= VcenterManager.findAllVmsInVcenter();
@@ -88,11 +98,25 @@ public class TestHelloVM {
 				
 	}
     
+    public static void testPingOneVM(String vmname) throws Exception{
+		VcenterManager.setVcenter();
+		System.out.println("vCenter is : " + VcenterManager.theVcenter.getName());   	
+		VirtualMachine vm = VmManager.findVmByNameInVcenter(vmname);						
+		System.out.println("\n" + vm.getName() + ": hello, my status is " + vm.getGuestHeartbeatStatus());
+		if(PingManager.pingVM(vm)){  // test for ping function
+			System.out.println("ping " + vm.getName() + " successful");
+		}
+		else System.out.println("ping " + vm.getName() + " failed");
+		
+				
+	}
+    
     public static void testCheckPowerState() throws Exception{
+    	//first disconnect T03-VM02-Lin-Ling's network manually
     	VcenterManager.setVcenter();
 		System.out.println("vCenter is : " + VcenterManager.theVcenter.getName());  
 		VirtualMachine vm = VmManager.findVmByNameInVcenter("T03-VM02-Lin-Ling");
-		System.out.println(vm.getName() + vm.getRuntime().getPowerState() );
+		System.out.println(vm.getName() +" status is " + vm.getRuntime().getPowerState() );
     }
     
 
@@ -185,7 +209,7 @@ public class TestHelloVM {
     
     }
 
-	public static void testCreateVMSnapshot() throws Exception{		
+	public static void testCreateAllVMSnapshot() throws Exception{		
     	VcenterManager.setVcenter();
     	System.out.println("vCenter is : " + VcenterManager.theVcenter.getName());   	
     	VirtualMachine[] vms= VcenterManager.findAllVmsInVcenter();
@@ -195,11 +219,21 @@ public class TestHelloVM {
 		}
 				
 	 }
+	
+	public static void testCreateOneVMSnapshot(String vmname) throws Exception{		
+    	VcenterManager.setVcenter();
+    	System.out.println("vCenter is : " + VcenterManager.theVcenter.getName());   	
+    	VirtualMachine vm= VmManager.findVmByNameInVcenter(vmname);  	
+		System.out.println("\n" + vm.getName() + ": hello, my status is " + vm.getGuestHeartbeatStatus());				
+		VmManager.createVmSnapshot(vm);				
+		
+				
+	 }
 
-	public static void testRevertVMToSnapshot() throws Exception {
+	public static void testRevertOneVMToSnapshot(String vmname) throws Exception {
 		VcenterManager.setVcenter();
      	System.out.println("vCenter is : " + VcenterManager.theVcenter.getName());     	
-    	 VirtualMachine vm = VmManager.findVmByNameInVcenter("T03-VM02-Lin-Ling");	  
+    	 VirtualMachine vm = VmManager.findVmByNameInVcenter(vmname);	  
 		  VmManager.revertToSnapshotAndPoweron(vm);
 	 }
 	
@@ -210,9 +244,10 @@ public class TestHelloVM {
 		VhostManager.migrateVmsToNewVhost(oldvhost,newvhost);
 	}
 	
-	public static void testCreateVhostSnapshot() throws Exception{
+	public static void testCreateVhostSnapshot(String vhostname) throws Exception{
 		VcenterManager.setVcenter();
-		HostSystem vhost=VhostManager.findVhostByNameInVcenter("130.65.132.155");
+		System.out.println("vCenter is : " + VcenterManager.theVcenter.getName());
+		HostSystem vhost=VhostManager.findVhostByNameInVcenter(vhostname);
 		VhostManager.createVhostSnapshot(vhost);
 		
 	}
@@ -220,7 +255,7 @@ public class TestHelloVM {
 	public static void testRevertVhostToSnapshot() throws Exception{
 		VcenterManager.setVcenter();
 		//HostSystem vhost=VhostManager.findVhostByNameInVcenter("130.65.132.159");
-		VhostManager.recoverVhostFromSnapshot("130.65.132.159");
+		VhostManager.recoverVhostFromSnapshotAndPoweron("130.65.132.159");
 		
 	}
 

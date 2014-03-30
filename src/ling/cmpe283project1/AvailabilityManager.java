@@ -4,10 +4,6 @@ package ling.cmpe283project1;
 
 import java.util.HashMap;
 
-import com.vmware.vim25.VirtualMachinePowerState;
-import com.vmware.vim25.mo.HostSystem;
-import com.vmware.vim25.mo.VirtualMachine;
-
 
 
 public class AvailabilityManager 
@@ -26,9 +22,11 @@ public class AvailabilityManager
 	}
 	
 	public static void setAvailabilityManager() throws Exception{  //constructor
-		VcenterManager.setVcenter();//set the predefined vCenter
+		VcenterManager.setVcenter();//set the predefined vCenter, and initial new list for the following
 		VcenterManager.setBackupVhostConnects(); // set up backup vHost List
 		VcenterManager.setVhostNameIn14Map(); //set up VhostNameIn14Map
+		VcenterManager.findandUpdateVhostsInVcenter(); //update VhostsInVcenter List
+		VcenterManager.updateVmNameToVhostNameMap();  //update VmNameToVhostNameMap
 		AvailabilityManager.FailTimer= new HashMap<String, Integer> ();
 		AvailabilityManager.SuccessTimer= new HashMap<String, Integer> ();
 		AvailabilityManager.allowToStartMonitor();
