@@ -101,7 +101,7 @@ public class Test3AvailabilityManager   //test methods for threads
 		
 		
 		AvailabilityManager.setAvailabilityManager();
-		VcenterManager.failOver(vmname);
+		MonitorAndFailoverThread.failOver(vmname);
 		VirtualMachine vm= VmManager.findVmByNameInVcenter(vmname);
 		if(PingManager.pingVM(vm)) 
 		   System.out.println("ping VM " +vmname+" success now");
@@ -120,7 +120,7 @@ public class Test3AvailabilityManager   //test methods for threads
 			System.out.println(vmname + " ping failed, need to failover");
 		
 		
-		VcenterManager.failOver(vmname);
+		MonitorAndFailoverThread.failOver(vmname);
 		System.out.println("sleep for a while waiting for vhost and vm be active....");
 		
 		Thread.sleep(60000);

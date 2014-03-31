@@ -58,7 +58,7 @@ public class VhostManager {
     	
          System.out.println("finding vHost as Vm in admin server 14 now...");
     	 //initial the map to match the vhost name in admin server
-    	 VcenterManager.setVhostNameIn14Map();
+    	 AvailabilityManager.setVhostNameIn14Map();
     	 
     	 // get the vhost name in admin server
     	 

@@ -189,7 +189,7 @@ public class TestHelloVM {
     
     public static void testAddBackupVhostToVcenter() throws Exception{
     	VcenterManager.setVcenter();
-    	VcenterManager.setBackupVhostConnects();
+    	AvailabilityManager.setBackupVhostConnects();
     	//before add
     	System.out.println("vCenter is : " + VcenterManager.theVcenter.getName());
     	HostSystem[] testvHosts=VcenterManager.findandUpdateVhostsInVcenter();
