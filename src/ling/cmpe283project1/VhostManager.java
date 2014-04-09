@@ -58,13 +58,13 @@ public class VhostManager {
     	
          System.out.println("finding vHost as Vm in admin server 14 now...");
     	 //initial the map to match the vhost name in admin server
-    	 AvailabilityManager.setVhostNameIn14Map();
+    	 AvailabilityManager.setVhostNameInAdminMap();
     	 
     	 // get the vhost name in admin server
     	 
-    	String vhostnameIn14 = VcenterManager.vhostNameIn14Map.get(vhostname);
+    	String vhostnameIn14 = VcenterManager.vhostNameInAdminMap.get(vhostname);
     	
- 		URL url = new URL("https://130.65.132.14/sdk");
+ 		URL url = new URL(AvailabilityManager.ADMINSERVERURL);
  		ServiceInstance si = new ServiceInstance(url, "administrator", "12!@qwQW", true);
  		Folder rootFolder = si.getRootFolder();
  		String name = rootFolder.getName();

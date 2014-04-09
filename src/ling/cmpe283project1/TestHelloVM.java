@@ -14,7 +14,8 @@ public class TestHelloVM {
 		//testSetAllVmOfVhostPoweron("130.65.132.159");
 		//testfindAllVMsinVcenter(); //test success
         //testPingAllVM();  //test success
-		testPingOneVM("T03-VM02-Lin-Ling"); //test success
+		//testPingOneVM("T03-VM02-Lin-Ling"); //test success
+		//testPingOneVM("T03-VM01C-Win-Jiawei");
         //testCheckPowerState(); //test success //could get state when network connection failed(ping failed)
         //testStatics(); //test success 
 		
@@ -35,16 +36,19 @@ public class TestHelloVM {
 		//testGetVhostofVmFromMap(); //sucess
 		//testUpdateVmListForEachVhost();//success
 		
-
-		      
+		//testAlarm ("T03-VM01C-Win-Jiawei");
+		//testAlarm ("T03-VM02-Lin-Ling");// test success
 		
+     
+		System.out.println("\nHello VM ");
         if (PingManager.pingByIP("130.65.132.159")) 
         	System.out.println("\nping host159 successful");
-        if (PingManager.pingByIP("130.65.132.151")) 
-        	System.out.println("\nping host151 successful");
-        if (PingManager.pingByIP("130.65.132.155")) 
-        	System.out.println("\nping host155 successful");
         
+//        if (PingManager.pingByIP("130.65.132.151")) 
+//        	System.out.println("\nping host151 successful");
+//        if (PingManager.pingByIP("130.65.132.155")) 
+//        	System.out.println("\nping host155 successful");
+       
 	
 	}
 	
@@ -281,6 +285,12 @@ public class TestHelloVM {
 
 	 }
 	
+	public static void testAlarm(String vmname)throws Exception{
+		VcenterManager.setVcenter();
+		System.out.println("vCenter is : " + VcenterManager.theVcenter.getName());  
+		VirtualMachine vm = VmManager.findVmByNameInVcenter(vmname);
+		ValarmManager.setAlarm(vm, "No connection");
+	}
 	
 	
 	

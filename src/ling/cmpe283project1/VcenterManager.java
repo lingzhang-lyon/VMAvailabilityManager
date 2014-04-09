@@ -19,7 +19,7 @@ import com.vmware.vim25.mo.VirtualMachine;
 public class VcenterManager {
 	static public Datacenter theVcenter; //pre-define
 	static public ArrayList<HostConnectSpec> backupVhostConnects;  //pre-define
-	public static HashMap<String, String> vhostNameIn14Map; //pre-define
+	public static HashMap<String, String> vhostNameInAdminMap; //pre-define
 	static public ArrayList<HostSystem> usedVhosts; //runtime-update
 	static public HashMap<String, String> vmNameToVhostNameMap; //runtime-update
 	
@@ -41,7 +41,7 @@ public class VcenterManager {
 		vmNameToVhostNameMap= map;
 		//initial vhostNameIn14Map
 		HashMap<String, String> map2= new HashMap<String,String>();
-		vhostNameIn14Map=map2;
+		vhostNameInAdminMap=map2;
 	}
 	
 	public static HostSystem[] findandUpdateVhostsInVcenter() throws Exception{  

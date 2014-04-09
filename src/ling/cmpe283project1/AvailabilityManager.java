@@ -12,7 +12,8 @@ import com.vmware.vim25.HostConnectSpec;
 
 public class AvailabilityManager 
 {   
-	public static String VCENTERURL="https://130.65.132.150/sdk";
+	public static String VCENTERURL="https://130.65.132.103/sdk";
+	public static String ADMINSERVERURL="https://130.65.132.13/sdk";
 	public static String USERNAME="administrator";
 	public static String PASSWORD="12!@qwQW";
 	public static boolean AllowToMonitor=false;
@@ -20,7 +21,7 @@ public class AvailabilityManager
 	public static int INTERVAL=300000; //5min
 	public static int ReTryPingVMTimes=3; //for monitor
 	public static int ReTryPingVhostTimes=2;  //for failover
-	public static boolean MONITORBACKUPONEVHOST=true;
+	public static boolean MONITORBACKUPONEVHOST=false;
 	public static String VHOSTNAME="130.65.132.159"; //for just monitor one vHost in vCenter
 	
 
@@ -38,7 +39,7 @@ public class AvailabilityManager
 	public static void setAvailabilityManager() throws Exception{  //constructor
 		VcenterManager.setVcenter();//set the predefined vCenter, and initial new list for the following
 		AvailabilityManager.setBackupVhostConnects(); // set up backup vHost List in VcenterManager
-		AvailabilityManager.setVhostNameIn14Map(); //set up VhostNameIn14Map in VcenterManager
+		AvailabilityManager.setVhostNameInAdminMap(); //set up VhostNameIn14Map in VcenterManager
 		VcenterManager.findandUpdateVhostsInVcenter(); //update VhostsInVcenter List
 		VcenterManager.updateVmNameToVhostNameMap();  //update VmNameToVhostNameMap
 		AvailabilityManager.allowToStartMonitor();
@@ -57,13 +58,13 @@ public class AvailabilityManager
 		
 	}
 
-	public static void setVhostNameIn14Map() throws Exception{
-		// pre define the vhostNameIn14Map
+	public static void setVhostNameInAdminMap() throws Exception{
+		// pre define the vhostNameInAdminMap
 		HashMap<String, String> Map = new HashMap<String, String>();
 	    Map.put("130.65.132.151", "t03-vHost01-cum1-lab1 _.132.151");
 	    Map.put("130.65.132.155", "t03-vHost01-cum1-proj1_132.155");
 	    Map.put("130.65.132.159", "t03-vHost01-cum1-lab2_132.159");
-	    VcenterManager.vhostNameIn14Map=Map;
+	    VcenterManager.vhostNameInAdminMap=Map;
 	    
 	}
 

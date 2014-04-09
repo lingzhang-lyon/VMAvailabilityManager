@@ -6,6 +6,7 @@ import com.vmware.vim25.mo.VirtualMachine;
 public class PingManager {
 		
 	public static boolean pingByIP(String ip) throws Exception {
+		System.out.println("ping....");	
 	String cmd = "";
 	if (System.getProperty("os.name").startsWith("Windows")) {
 		// For Windows

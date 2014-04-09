@@ -59,8 +59,11 @@ public class MonitorAndFailoverThread implements Runnable {
 				if (PingManager.pingVM(vm)) continue; // will not failover
 				
 				//if after checked ReTryPingVMTimes, still could not ping through vm
-				//createAlarm!! start failover for the vm
-				System.out.println(vmname +" is abnormally now!!!!!!!!!!!!!!!!!!!");						
+				//createAlarm!!!!!!
+				System.out.println(vmname +" is abnormally now!!!!!!!!!!!!!!!!!!!");
+				
+				
+				//start failover for the vm
 				MonitorAndFailoverThread.failOver(vmname);
 			} //end if ping vm failed
 		
@@ -81,10 +84,8 @@ public class MonitorAndFailoverThread implements Runnable {
 			if (parentvhost!=null && PingManager.pingVhost(parentvhost)){	
 				//if vHost is found and normal, you should be able to find the VM 		
 				System.out.println("the parent vHost is normal now, trying to recover " + vmname +" now...");			
-				//first try to power on the VM // do we need?
-				VirtualMachine vm = VmManager.findVmByNameInVcenter(vmname);
-				VmManager.setPowerOn(vm);
 				
+				VirtualMachine vm = VmManager.findVmByNameInVcenter(vmname);				
 				if(vm==null||!PingManager.pingVM(vm)){
 				//if still could not ping through VM
 					System.out.println("still could not ping through "+ vmname + ", will revert to snapshot");

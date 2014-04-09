@@ -6,9 +6,9 @@ public class Test4AvailabilityManager {  //test threads
 	    System.out.println("Main ThreadId: " + Thread.currentThread().getId());
 		AvailabilityManager.setAvailabilityManager();
 		
-		new Thread(new BackupAndStaticsThread()).start(); //test success 
+		//new Thread(new BackupAndStaticsThread()).start(); //test success 
 				
-		//new Thread(new MonitorAndFailoverThread()).start(); //test success
+		new Thread(new MonitorAndFailoverThread()).start(); //test success
 		
    }
 

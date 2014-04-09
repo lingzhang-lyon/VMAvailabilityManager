@@ -12,12 +12,14 @@ public class VmManager {
 		// create a snapshot for selected virtual machine
 		//pre condition:  vm is noramal and could be ping through
 		
-		System.out.println("Trying to create snapshot for " + vm.getName() + " now...");
+		System.out.println("\nTrying to create snapshot for " + vm.getName() + " now...");
 		
 		//first make sure vm could be ping through
 		if( !PingManager.pingVM(vm) ) {
-	   		 System.out.println("could not ping through VM, it's abnormal, will not create snapshot");
-	   	     return;		 
+			if( !PingManager.pingVM(vm) ){//ping for twice
+	   		 System.out.println("could not ping through VM, will not create snapshot");
+	   	     return;
+			}
 	   	 }
 		
 		String snapshotname = vm.getName() + "_SnapShot";
@@ -91,7 +93,8 @@ public class VmManager {
 	public static boolean makeSureVmIpConfigured(VirtualMachine vm) throws Exception{
 		boolean VMhasPingThrough=false;
 		do {  
-			if(PingManager.pingVM(vm)) VMhasPingThrough=true;			
+			if(PingManager.pingVM(vm)) VMhasPingThrough=true;
+			Thread.sleep(10000);  // sleep instead of busy waiting
 			} while (VMhasPingThrough==false);	
 		return VMhasPingThrough;
 	}
